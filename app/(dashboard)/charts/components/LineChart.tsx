@@ -153,19 +153,19 @@ const LineChartPage: NextPage<Props> = ({ }) => {
                                 {
                                     dataKey: 'month',
                                     scaleType: xAxisScaleType,
-                                    showTicks: showXAxisTicks,
-                                    tickLine: xAxisShowLine,
-                                    tickStyle: { fontSize: xAxisTickFontSize, fill: xAxisTickColor },
+                                    //  showTicks: showXAxisTicks,
+                                    //  tickLine: xAxisShowLine,
+                                    //  tickStyle: { fontSize: xAxisTickFontSize, fill: xAxisTickColor },
                                 },
                             ]}
                             yAxis={[
                                 {
                                     dataKey: 'value',
                                     scaleType: yAxisScaleType,
-                                    domain: [yAxisDomainMin, yAxisDomainMax],
-                                    showTicks: showYAxisTicks,
-                                    tickLine: yAxisShowLine,
-                                    tickStyle: { fontSize: yAxisTickFontSize, fill: yAxisTickColor },
+                                    //     domain: [yAxisDomainMin, yAxisDomainMax],
+                                    //    showTicks: showYAxisTicks,
+                                    //    tickLine: yAxisShowLine,
+                                    //   tickStyle: { fontSize: yAxisTickFontSize, fill: yAxisTickColor },
                                 },
                             ]}
                             series={[
@@ -174,44 +174,28 @@ const LineChartPage: NextPage<Props> = ({ }) => {
                                     label: 'Revenue',
                                     color: colorPalette,
                                     area: showArea,
-                                    areaGradient: areaGradient
-                                        ? { from: areaGradientFrom, to: areaGradientTo }
-                                        : undefined,
+                                    //  areaGradient: areaGradient
+                                    //     ? { from: areaGradientFrom, to: areaGradientTo }
+                                    //     : undefined,
                                     curve: curveType,
                                     connectNulls,
                                     baseline,
                                     showMark: showMarks,
-                                    markSize,
-                                    markStyle: markOutlined
-                                        ? { stroke: colorPalette, strokeWidth: 2, fill: 'white' }
-                                        : { fill: colorPalette },
+                                    //     markSize,
+                                    //   markStyle: markOutlined
+                                    //       ? { stroke: colorPalette, strokeWidth: 2, fill: 'white' }
+                                    //       : { fill: colorPalette },
                                 },
                             ]}
                             grid={{ horizontal: showGridHorizontal, vertical: showGridVertical }}
-                            legend={showLegend ? { position: 'top' } : undefined}
+                            //        legend={showLegend ? { position: 'top' } : undefined}
                             axisHighlight={{ x: axisHighlightX, y: axisHighlightY }}
                             skipAnimation={skipAnimation}
                             onLineClick={onLineClickEnabled ? (event, params) => console.log('Line clicked', params) : undefined}
                             onMarkClick={onMarkClickEnabled ? (event, params) => console.log('Mark clicked', params) : undefined}
-                            series={[
-                                {
-                                    dataKey: 'value',
-                                    label: 'Revenue',
-                                    area: showArea,
-                                    color: colorPalette, // color de línea
-                                    areaColor: `linear-gradient(180deg, ${areaGradientFrom} 0%, ${areaGradientTo} 100%)`,
-                                    curve: curveType,
-                                    connectNulls,
-                                    baseline,
-                                    showMark: showMarks,
-                                    markSize,
-                                    markStyle: markOutlined
-                                        ? { stroke: colorPalette, strokeWidth: 2, fill: 'white' }
-                                        : { fill: colorPalette },
-                                }
-                            ]}
-                        />
 
+                        />
+                        {/*
                         <MuiLineChart
                             dataset={dataset}
                             height={400}
@@ -248,7 +232,7 @@ const LineChartPage: NextPage<Props> = ({ }) => {
                             ]}
                             legend={{ position: 'top' }}
                             tooltip
-                        />
+                        />*/}
                     </Paper>
                 </Grid>
 
