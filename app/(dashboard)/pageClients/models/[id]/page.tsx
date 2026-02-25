@@ -8,8 +8,8 @@ interface Props {
     }
 }
 
-const Page: NextPage<Props> = async ({ params }) => {
-    const { id } = await params
+const Page = async ({ params }: Props) => {
+    const { id } = params
     const { model, ok } = await GetModelById(id)
     return <div><EditModelForm model={model} /></div>
 }
