@@ -72,6 +72,7 @@ export default function EditModelForm({ model }: Props) {
             })
 
             console.log("Response from API:", response)
+            router.refresh()
             router.back()
         } catch (error) {
             console.error(error)
