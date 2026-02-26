@@ -5,7 +5,6 @@ import { connectDB } from "@/database/utils/mongodb";
 import "@/database/models/Models";
 import "@/database/models/Tags";
 import "@/database/models/Galeries";
-import { videos } from "@/data/data";
 export const GetVideos = async () => {
 
     try {
