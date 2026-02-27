@@ -1,4 +1,4 @@
-import { GetModelById } from '@/database/actions/models/GetModelById'
+import GetModelById from '@/database/actions/models/GetModelById'
 import { NextPage } from 'next'
 import EditModelForm from './components/EditModelForm'
 import { use } from "react";
