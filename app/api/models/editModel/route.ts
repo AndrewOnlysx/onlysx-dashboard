@@ -50,7 +50,7 @@ export async function PUT(
 
         // 🔥 Si enviaron imagen nueva → subir a R2
         if (image && image.size > 0) {
-            const uploadResult = await UploadFile(image, id)
+            const uploadResult = await UploadFile(image, 'user-0')
 
             if (!uploadResult.success) {
                 return NextResponse.json(

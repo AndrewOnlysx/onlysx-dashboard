@@ -72,6 +72,28 @@ const NAVIGATION: Navigation = [
           color="currentColor"
           strokeWidth={0}
         />,
+      }, {
+        kind: 'page',
+        segment: 'galeries',
+        title: 'Galeries',
+        icon: <HugeiconsIcon
+          icon={HighHeels02Icon}
+          size={24}
+          color="currentColor"
+          strokeWidth={0}
+        />,
+
+      },
+      {
+        kind: 'page',
+        segment: 'videos',
+        title: 'Videos',
+        icon: <HugeiconsIcon
+          icon={HighHeels02Icon}
+          size={24}
+          color="currentColor"
+          strokeWidth={0}
+        />,
       }
     ]
   }
