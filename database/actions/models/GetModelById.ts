@@ -66,14 +66,14 @@ export default async function GetModelFullProfile(modelId: string) {
         }
         return {
             ok: true,
-            model,
+            model: JSON.parse(JSON.stringify(model)),
             stats: {
                 totalVideos,
                 totalGaleries,
                 totalViews
             },
-            videos,
-            galeries,
+            videos: JSON.parse(JSON.stringify(videos)),
+            galeries: JSON.parse(JSON.stringify(galeries)),
             message: 'Model profile fetched successfully'
         }
     } catch (error) {

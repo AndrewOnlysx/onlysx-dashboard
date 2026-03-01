@@ -22,6 +22,7 @@ interface Props {
 }
 
 const GaleryView: NextPage<Props> = ({ galeries }) => {
+    console.log('imagenes que llegan', { galeries })
     return (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {galeries.map((gallery) => (
@@ -32,7 +33,7 @@ const GaleryView: NextPage<Props> = ({ galeries }) => {
                     {/* 🔥 Portada */}
                     <div className="relative w-full aspect-square overflow-hidden">
                         <img
-                            src={gallery.images?.[0]}
+                            src={(gallery.images[0] as any).url}
                             alt={gallery.name}
                             className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
                         />
