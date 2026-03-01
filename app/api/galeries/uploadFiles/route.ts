@@ -26,7 +26,7 @@ export async function POST(req: Request) {
                 { status: 400 }
             )
         }
-
+        const dataWhitNameAndStatus: { filename: string, status: string, url: string }[] = []
         const uploadResults = await Promise.all(
             files.map(async (file) => {
                 if (!file || file.size === 0) return null
@@ -40,6 +40,12 @@ export async function POST(req: Request) {
                     throw new Error("Error subiendo archivo")
                 }
 
+                dataWhitNameAndStatus.push({
+                    filename: file.name,
+                    status: result.success ? "success" : "error",
+                    url: result.url || ""
+                })
+
                 return result.url
             })
         )
@@ -47,7 +53,8 @@ export async function POST(req: Request) {
         return NextResponse.json({
             ok: true,
             message: "Imágenes subidas correctamente.",
-            urls: uploadResults.filter(Boolean)
+            urls: uploadResults.filter(Boolean),
+            data: dataWhitNameAndStatus
         })
 
     } catch (error) {

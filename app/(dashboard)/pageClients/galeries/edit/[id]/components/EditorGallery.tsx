@@ -40,40 +40,39 @@ const EditorGallery: NextPage<Props> = ({ gallery }) => {
 
     const [loading, setLoading] = useState(false)
 
-    const onDrop = useCallback(async (acceptedFiles: File[]) => {
-        const previews = acceptedFiles.map(file => ({
-            url: URL.createObjectURL(file),
-            isNew: true
-        }))
-        const uploadResponse = await fetch('/api/galeries/uploadFiles', {
-            method: 'POST',
-            body: (() => {
-                const formData = new FormData()
-                acceptedFiles.forEach(file => formData.append('files', file))
-                return formData
-            })()
-        })
-        const response = await uploadResponse.json()
-        console.log('Upload response:', response)
-        const uploadedUrls = response.urls || []
-        setImages(prev => [...prev, ...uploadedUrls.map((url: string) => ({ url, isNew: false }))])
-        setImages(prev => [
-            ...prev,
-            ...previews.map((preview, index) => ({
-                filename: acceptedFiles[index]?.name ?? '',
-                status: 'preview',
-                url: preview.url,
-                isNew: preview.isNew
-            }))
-        ])
-    }, [])
 
-    const { getRootProps, getInputProps, isDragActive } = useDropzone({
-        onDrop,
-        multiple: true,
-        accept: { 'image/*': [] }
-    })
+
+
     const [loadingImage, setLoadingImage] = useState<number | null>(null)
+    const [uploadingNewImages, setUploadingNewImages] = useState(false)
+
+    const onDrop = useCallback(async (acceptedFiles: File[]) => {
+        setUploadingNewImages(true)
+        const formData = new FormData()
+        acceptedFiles.forEach(file => formData.append('images', file))
+
+        const result = await fetch('/api/galeries/uploadFiles', {
+            method: 'POST',
+            body: formData
+        })
+
+        console.log({ result })
+        if (!result.ok) {
+            alert('Error subiendo las imágenes')
+            return
+        }
+
+
+        const { data: dataWhitNameAndStatus } = await result.json()
+
+        const resultAction = await EditGallery({
+            galleryId: gallery._id,
+            images: [...images, ...dataWhitNameAndStatus]
+        })
+        console.log('EditGallery response:', resultAction)
+        setImages(prev => [...prev, ...dataWhitNameAndStatus])
+        setUploadingNewImages(false)
+    }, [])
     const replaceImage = async (index: number, file: File) => {
         try {
             setLoadingImage(index)
@@ -87,7 +86,9 @@ const EditorGallery: NextPage<Props> = ({ gallery }) => {
             })
 
             if (!result.ok) {
-                throw new Error('Upload failed')
+                //  throw new Error('Upload failed')
+                alert('Error subiendo la imagen')
+                return
             }
 
             const data: { urls?: string[] } = await result.json()
@@ -119,15 +120,33 @@ const EditorGallery: NextPage<Props> = ({ gallery }) => {
         }
     }
 
-    const removeImage = (index: number) => {
-        setImages(prev => prev.filter((_, i) => i !== index))
+    const removeImage = async (index: number) => {
+        setLoadingImage(index)
+        try {
+            const response = await EditGallery({
+                galleryId: gallery._id,
+                images: images.filter((_, i) => i !== index)
+            })
+            console.log('EditGallery response:', response)
+            setImages(prev => prev.filter((_, i) => i !== index))
+        } catch (error) {
+            console.error('Error actualizando la galería:', error)
+            alert('Error actualizando la galería')
+        } finally {
+            setLoadingImage(null)
+        }
     }
 
     const handleSave = () => {
         setLoading(true)
         setTimeout(() => setLoading(false), 1000)
     }
-
+    const { getRootProps, getInputProps, isDragActive } = useDropzone({
+        onDrop,
+        multiple: true,
+        accept: { 'image/*': [] },
+        maxFiles: 20
+    })
     return (
         <div className="max-w-7xl mx-auto p-6 text-white">
 
@@ -229,7 +248,25 @@ const EditorGallery: NextPage<Props> = ({ gallery }) => {
                             </button>
                         </div>
                     </div>
-                    <div className="max-h-[500px] overflow-y-auto">
+                    <div
+                        {...getRootProps()}
+                        className="max-h-[800px] overflow-y-auto">
+                        <input {...getInputProps()} />
+
+                        <div style={{
+                            position: 'absolute',
+                            inset: 0,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            backgroundColor: 'rgba(0, 0, 0, 0.6)',
+                            opacity: uploadingNewImages ? 1 : 0,
+                            transition: 'opacity 0.3s',
+                            zIndex: uploadingNewImages ? 10 : 0
+                        }}>
+                            <CircularProgress />
+                        </div>
+
                         {/* GRID */}
                         {viewMode === 'grid' && (
                             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -274,18 +311,7 @@ const EditorGallery: NextPage<Props> = ({ gallery }) => {
                             </div>
                         )}
                         <br />
-                        <div
-                            {...getRootProps()}
-                            className={`border-2 border-dashed rounded-xl p-6 text-center transition cursor-pointer ${isDragActive
-                                ? 'border-white bg-zinc-800'
-                                : 'border-zinc-700 bg-zinc-900'
-                                }`}
-                        >
-                            <input {...getInputProps()} />
-                            <p className="text-sm text-zinc-400">
-                                Arrastra imágenes o haz click
-                            </p>
-                        </div>
+
                     </div>
 
 
@@ -296,7 +322,7 @@ const EditorGallery: NextPage<Props> = ({ gallery }) => {
 }
 
 const ImageCard = ({ img, index, replaceImage, removeImage, loading }: any) => (
-    <div className="relative group rounded-lg overflow-hidden bg-zinc-900">
+    <div className="relative group rounded-lg overflow-hidden bg-zinc-900" onClick={(e) => e.stopPropagation()}>
         <div style={{
             position: 'absolute',
             inset: 0,
@@ -338,7 +364,7 @@ const ImageCard = ({ img, index, replaceImage, removeImage, loading }: any) => (
 
             <button
                 onClick={() => removeImage(index)}
-                className="bg-red-600 text-white text-xs px-3 py-1 rounded"
+                className="bg-red-600 text-white text-xs px-3 py-1 rounded cursor-pointer"
             >
                 Eliminar
             </button>
