@@ -18,7 +18,7 @@ export async function POST(req: Request) {
         const formData = await req.formData()
 
         const files = formData.getAll("images") as File[]
-        const folder = formData.get("folder") as string | null
+        const folder = formData.get("folder") as string | 'user-0'
 
         if (!files || files.length === 0) {
             return NextResponse.json(

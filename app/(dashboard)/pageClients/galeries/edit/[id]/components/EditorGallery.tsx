@@ -250,7 +250,7 @@ const EditorGallery: NextPage<Props> = ({ gallery }) => {
                     </div>
                     <div
                         {...getRootProps()}
-                        className="max-h-[800px] overflow-y-auto">
+                        className="max-h-[800px] overflow-y-auto border-2 border-dashed border-zinc-700 rounded-lg p-4 relative cursor-pointer">
                         <input {...getInputProps()} />
 
                         <div style={{
