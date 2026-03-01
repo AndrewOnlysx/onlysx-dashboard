@@ -1,4 +1,4 @@
-import { NextPage } from 'next'
+
 import GetModelById from '@/database/actions/models/GetModelById'
 import {
     Box,
@@ -20,12 +20,12 @@ import { VideoType } from '@/types/Types'
 import GaleryView from '@/components/GaleryView'
 
 interface Props {
-    params: Promise<{ id: string }>
+    params: { id: string },
     searchParams?: { tab?: string }
 }
 
 const Page = async ({ params, searchParams }: Props) => {
-    const { id } = await params
+    const { id } =  params
     const tab = searchParams?.tab || 'videos'
 
     const { model, stats, videos, galeries } = await GetModelById(id)
