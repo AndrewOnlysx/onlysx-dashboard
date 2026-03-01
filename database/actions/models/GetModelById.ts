@@ -4,6 +4,7 @@ import { Galeries } from '@/database/models/Galeries'
 import { Models } from '@/database/models/Models'
 import { Video } from '@/database/models/Video'
 import { connectDB } from '@/database/utils/mongodb'
+import '@/database/models/Tags'
 import { ok } from 'assert'
 
 import mongoose from 'mongoose'
@@ -28,7 +29,7 @@ export default async function GetModelFullProfile(modelId: string) {
             Models.findById(objectId).lean(),
 
             Video.find({ models: objectId })
-                .sort({ createdAt: -1 })
+                .sort({ createdAt: -1 }).populate('models').populate('tags')
                 .select('-dump') // opcional si no quieres traer peso innecesario
                 .lean(),
 
