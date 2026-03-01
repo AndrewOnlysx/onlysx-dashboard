@@ -6,7 +6,7 @@ import { NextPage } from 'next'
 import Image from 'next/image'
 import { useCallback, useState } from 'react'
 import { useDropzone } from 'react-dropzone'
-
+import { useRouter } from 'next/navigation'
 interface GalleryType {
     _id: string
     idTags: string[]
@@ -24,7 +24,7 @@ interface Props {
 }
 
 const EditorGallery: NextPage<Props> = ({ gallery }) => {
-
+    const router = useRouter()
     const [name, setName] = useState(gallery.name)
     const [video, setVideo] = useState(gallery.idRelatedVideo || '')
     const [model, setModel] = useState(gallery.idModel?.[0] || '')
@@ -47,7 +47,7 @@ const EditorGallery: NextPage<Props> = ({ gallery }) => {
     const [loadingImage, setLoadingImage] = useState<number | null>(null)
     const [uploadingNewImages, setUploadingNewImages] = useState(false)
 
-    const onDrop = useCallback(async (acceptedFiles: File[]) => {
+    const onDrop = (async (acceptedFiles: File[]) => {
         setUploadingNewImages(true)
         const formData = new FormData()
         acceptedFiles.forEach(file => formData.append('images', file))
@@ -73,7 +73,8 @@ const EditorGallery: NextPage<Props> = ({ gallery }) => {
         console.log('EditGallery response:', resultAction)
         setImages(prev => [...prev, ...dataWhitNameAndStatus])
         setUploadingNewImages(false)
-    }, [])
+        router.refresh()
+    })
     const replaceImage = async (index: number, file: File) => {
         try {
             setLoadingImage(index)
@@ -111,7 +112,7 @@ const EditorGallery: NextPage<Props> = ({ gallery }) => {
             console.log('EditGallery response:', response)
             setImages(updatedImages)
             setLoading(false)
-
+            router.refresh()
         } catch (error) {
             console.error('Error actualizando la galería:', error)
             alert('Error actualizando la galería')
@@ -134,7 +135,9 @@ const EditorGallery: NextPage<Props> = ({ gallery }) => {
             console.error('Error actualizando la galería:', error)
             alert('Error actualizando la galería')
         } finally {
+
             setLoadingImage(null)
+            router.refresh()
         }
     }
 
