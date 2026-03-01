@@ -19,14 +19,14 @@ import VideosViewer from '@/components/VideosViewer'
 import { VideoType } from '@/types/Types'
 import GaleryView from '@/components/GaleryView'
 
-interface Props {
-    params: { id: string },
-    searchParams?: { tab?: string }
+type PageProps = {
+    params: Promise<{ id: string }>
+    searchParams?: Promise<{ tab?: string }>
 }
 
-const Page = async ({ params, searchParams }: Props) => {
-    const { id } =  params
-    const tab = searchParams?.tab || 'videos'
+const Page = async ({ params, searchParams }: PageProps) => {
+    const { id } = await params
+    const tab = searchParams ? (await searchParams).tab : 'videos'
 
     const { model, stats, videos, galeries } = await GetModelById(id)
     console.log({ model, stats, videos, galeries })
