@@ -3,6 +3,7 @@
 import EditGallery from '@/database/actions/galeries/EditGallery'
 import { CircularProgress } from '@mui/material'
 import { NextPage } from 'next'
+import Image from 'next/image'
 import { useCallback, useState } from 'react'
 import { useDropzone } from 'react-dropzone'
 
@@ -337,7 +338,7 @@ const ImageCard = ({ img, index, replaceImage, removeImage, loading }: any) => (
             <CircularProgress style={{ zIndex: 99 }} />
         </div>
 
-        <img src={img.url} className="w-full h-40 object-cover" />
+        <Image src={img.url} alt={`Imagen ${index}`} width={400} height={160} className="w-full h-40 object-cover" />
 
         {img.isNew && (
             <div className="absolute top-2 left-2 bg-green-600 text-xs px-2 py-1 rounded">
