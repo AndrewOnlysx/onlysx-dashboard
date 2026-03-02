@@ -17,7 +17,7 @@ import {
 import Image from 'next/image'
 import VideosViewer from '@/components/VideosViewer'
 import { VideoType } from '@/types/Types'
-import GaleryView from '@/components/GaleryView'
+import GaleryView from '@/components/Gallery/GaleryView'
 
 type PageProps = {
     params: Promise<{ id: string }>

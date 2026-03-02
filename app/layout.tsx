@@ -14,6 +14,8 @@ import { AnalysisTextLinkIcon } from '@hugeicons-pro/core-stroke-rounded';
 import { WebDesign02Icon } from '@hugeicons-pro/core-solid-rounded';
 import { HighHeels02Icon, } from '@hugeicons-pro/core-solid-rounded';
 import { HugeiconsIcon } from '@hugeicons/react'
+import { Album01Icon } from '@hugeicons-pro/core-stroke-rounded';
+
 import ContainerPage from '@/components/Layout/Layouts';
 export const metadata = {
   title: 'ONLYSX',
@@ -77,10 +79,10 @@ const NAVIGATION: Navigation = [
         segment: 'galeries',
         title: 'Galeries',
         icon: <HugeiconsIcon
-          icon={HighHeels02Icon}
+          icon={Album01Icon}
           size={24}
           color="currentColor"
-          strokeWidth={0}
+          strokeWidth={2}
         />,
 
       },

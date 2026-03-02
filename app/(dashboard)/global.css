@@ -137,3 +137,26 @@
     }
 
 }
+
+.thumbnail-scroll::-webkit-scrollbar {
+    height: 6px;
+    /* 🔥 aquí cambias el grosor */
+}
+
+.thumbnail-scroll::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.thumbnail-scroll::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 999px;
+}
+
+.thumbnail-scroll::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.6);
+}
+
+/* Firefox */
+.thumbnail-scroll {
+    scrollbar-width: thin;
+}

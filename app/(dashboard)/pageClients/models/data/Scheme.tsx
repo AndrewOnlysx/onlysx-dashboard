@@ -20,7 +20,7 @@ const ColumnsModels: GridColDef[] = [
     { field: 'totalGaleries', headerName: 'Galeries', width: 150 },
     {
         field: 'actions', headerName: 'Actions', width: 150, renderCell: (params) => {
-            return <Link href={`/pageClients/models/${params.row._id}`}>
+            return <Link onClick={(e) => e.stopPropagation()} href={`/pageClients/models/${params.row._id}`}>
                 <IconButton >
                     <HugeiconsIcon
 
