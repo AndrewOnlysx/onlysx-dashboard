@@ -2,7 +2,7 @@ import { connectDB } from "@/database/utils/mongodb"
 import { Galeries } from "@/database/models/Galeries"
 import '@/database/models/Models'
 import '@/database/models/Tags'
-export const GetGaleriesById = async () => {
+export const GetAllGalery = async () => {
     try {
         await connectDB()
         const res = await Galeries.find({}).populate('idModel').populate('idTags').sort({ createdAt: -1 })

@@ -57,7 +57,7 @@ const GalleryVento: NextPage<Props> = ({ gallery, onBack }) => {
                                 strokeWidth={1.5}
                             /> Back
                         </button>
-                        <h2 className="text-2xl w-[400px] font-bold">{gallery.name}</h2>
+                        <h2 className="text-2xl w-[800px] font-bold">{gallery.name}</h2>
 
 
                     </div>
