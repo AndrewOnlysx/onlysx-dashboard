@@ -49,7 +49,7 @@ export async function POST(req: Request) {
                 return result.url
             })
         )
-
+        console.log(dataWhitNameAndStatus)
         return NextResponse.json({
             ok: true,
             message: "Imágenes subidas correctamente.",

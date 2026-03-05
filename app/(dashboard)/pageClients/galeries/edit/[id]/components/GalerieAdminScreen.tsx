@@ -79,7 +79,7 @@ const GaleriesAdminScreen = ({ galeries }: Props) => {
                 </div>
 
                 <Link
-                    href="/admin/galeries/create"
+                    href="galeries/addGallery"
                     className="px-5 py-2 bg-white text-black rounded-full font-medium hover:bg-zinc-200 transition"
                 >
                     + Nueva Galería

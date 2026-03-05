@@ -20,8 +20,8 @@ export const theme = createTheme({
 
         action: {
             hover: 'rgba(255,80,164,0.06)',
-            selected: 'rgb(255, 217, 80)',
-            focus: 'rgba(112, 255, 80, 0.22)',
+            selected: PRIMARYCOLOR,
+            focus: PRIMARYCOLORTransparent,
             active: '#cecece',
         },
     },
