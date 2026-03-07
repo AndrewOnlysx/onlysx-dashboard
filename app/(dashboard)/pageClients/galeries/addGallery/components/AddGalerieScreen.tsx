@@ -5,6 +5,7 @@ import Selectag from '@/components/TagsSelector/Selectag'
 import { CreateGallery } from '@/database/actions/galeries/CreateGallery'
 import { ModelType, TagType } from '@/types/Types'
 import { CircularProgress } from '@mui/material'
+import { set } from 'mongoose'
 import { NextPage } from 'next'
 import Image from 'next/image'
 import { Select } from 'radix-ui'
@@ -106,6 +107,12 @@ const AddGalerieScreen: NextPage<Props> = () => {
         }
         try {
             const result = await CreateGallery(payload)
+            console.log('Galería creada:', result)
+            alert('Galería creada con éxito')
+            setTimeout(() => {
+                window.location.href = '/pageClients/galeries'
+            }, 1000)
+
         } catch (error) {
             console.error('Error creando galería:', error)
             alert('Error creando galería')

@@ -2,8 +2,7 @@
 
 import { Galeries } from "@/database/models/Galeries"
 import { connectDB } from "@/database/utils/mongodb"
-
-
+import mongoose from "mongoose"
 
 export const CreateGallery = async (data: {
     name: string
@@ -17,12 +16,23 @@ export const CreateGallery = async (data: {
     const { name, idModel, idTags, idRelatedVideo, images } = data
     console.log("Creating gallery with data:", data)
     try {
+        const parseObjectIdArray = (ids: string[], fieldName: string) => {
+            if (!ids.every((id) => mongoose.Types.ObjectId.isValid(id))) {
+                throw new Error(`Invalid ${fieldName} id`)
+            }
+
+            return ids.map((id) => new mongoose.Types.ObjectId(id))
+        }
+
+        if (idRelatedVideo && !mongoose.Types.ObjectId.isValid(idRelatedVideo)) {
+            throw new Error("Invalid idRelatedVideo id")
+        }
+
         const newGallery = new Galeries({
             name,
-            description: '',
-            models: idModel,
-            tags: idTags,
-            videoRelated: idRelatedVideo || null,
+            idTags: parseObjectIdArray(idTags, "idTags"),
+            idModel: parseObjectIdArray(idModel, "idModel"),
+            idRelatedVideo: idRelatedVideo ? new mongoose.Types.ObjectId(idRelatedVideo) : undefined,
             images
         })
         await newGallery.save()
