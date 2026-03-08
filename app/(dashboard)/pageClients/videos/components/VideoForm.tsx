@@ -28,12 +28,23 @@ const VideoForm = () => {
                             onClick={form.actions.handleSubmit}
                             className="inline-flex items-center justify-center rounded-full bg-white px-6 py-3 text-sm font-semibold text-black transition hover:bg-zinc-200 disabled:cursor-not-allowed disabled:bg-zinc-400"
                         >
-                            {form.actions.isSubmitting ? 'Preparando payload...' : 'Guardar video (console.log)'}
+                            {form.actions.isSubmitting ? 'Guardando video...' : 'Guardar video'}
                         </button>
                         <span className="inline-flex items-center rounded-full border border-amber-400/20 bg-amber-400/10 px-4 py-3 text-sm text-amber-100">
-                            Los archivos ya se suben al seleccionar. El submit actual todavia solo imprime el payload normalizado y los metadatos.
+                            Los assets se suben al seleccionar. Este boton ahora persiste el video en la base de datos usando las URLs remotas ya cargadas.
                         </span>
                     </section>
+
+                    {form.actions.submitMessage && (
+                        <div
+                            className={`rounded-[24px] p-4 text-sm ${form.actions.submitStatus === 'error'
+                                ? 'border border-rose-400/20 bg-rose-400/10 text-rose-100'
+                                : 'border border-emerald-400/20 bg-emerald-400/10 text-emerald-100'
+                                }`}
+                        >
+                            {form.actions.submitMessage}
+                        </div>
+                    )}
                 </div>
 
                 <VideoPreviewSidebar preview={form.preview} />

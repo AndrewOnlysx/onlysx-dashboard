@@ -14,6 +14,7 @@ type FieldErrors = Partial<Record<
 >>
 
 type UploadKind = 'video' | 'manualCover' | 'generatedCover'
+type SubmitStatus = 'idle' | 'success' | 'error'
 
 export interface AssetUploadState {
     status: VideoAssetUploadStatus
@@ -71,6 +72,7 @@ export const useVideoForm = () => {
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [isGeneratingPreview, setIsGeneratingPreview] = useState(false)
     const [submitMessage, setSubmitMessage] = useState('')
+    const [submitStatus, setSubmitStatus] = useState<SubmitStatus>('idle')
     const [assetMessage, setAssetMessage] = useState('')
     const [lastPayloadPreview, setLastPayloadPreview] = useState<string | null>(null)
 
@@ -336,7 +338,15 @@ export const useVideoForm = () => {
         setGeneratedCoverUpload(createInitialUploadState())
     }
 
-    const resetForm = () => {
+    const resetForm = ({
+        submitMessage: nextSubmitMessage = '',
+        submitStatus: nextSubmitStatus = 'idle',
+        lastPayloadPreview: nextLastPayloadPreview = null
+    }: {
+        submitMessage?: string
+        submitStatus?: SubmitStatus
+        lastPayloadPreview?: string | null
+    } = {}) => {
         clearManualCover()
         clearVideoSelection()
         setTitle('')
@@ -350,9 +360,10 @@ export const useVideoForm = () => {
         setManualSearchParams([])
         setKeywordInput('')
         setErrors({})
-        setSubmitMessage('')
+        setSubmitMessage(nextSubmitMessage)
+        setSubmitStatus(nextSubmitStatus)
         setAssetMessage('')
-        setLastPayloadPreview(null)
+        setLastPayloadPreview(nextLastPayloadPreview)
     }
 
     const commitKeyword = () => {
@@ -388,6 +399,7 @@ export const useVideoForm = () => {
         setManualCoverUrl(nextCoverUrl)
         setAssetMessage('')
         setSubmitMessage('')
+        setSubmitStatus('idle')
         setErrors((prev) => ({ ...prev, image: undefined }))
 
         startUpload({
@@ -423,6 +435,7 @@ export const useVideoForm = () => {
         setIsGeneratingPreview(true)
         setAssetMessage('')
         setSubmitMessage('')
+        setSubmitStatus('idle')
         setErrors((prev) => ({ ...prev, video: undefined, image: undefined, time: undefined }))
 
         startUpload({
@@ -505,6 +518,7 @@ export const useVideoForm = () => {
 
         setErrors(nextErrors)
         setSubmitMessage('')
+        setSubmitStatus('idle')
 
         if (Object.keys(nextErrors).length > 0) {
             return
@@ -515,11 +529,22 @@ export const useVideoForm = () => {
         try {
             const response = await submitCreateVideoDraft(draftSubmission)
 
-            setLastPayloadPreview(JSON.stringify(draftSubmission, null, 2))
-            setSubmitMessage(response.message)
+            if (!response.ok) {
+                setSubmitStatus('error')
+                setSubmitMessage(response.message)
+                setLastPayloadPreview(JSON.stringify(draftSubmission, null, 2))
+                return
+            }
+
+            resetForm({
+                submitMessage: response.message,
+                submitStatus: 'success'
+            })
         } catch (error) {
             console.error('Error preparando el payload del video:', error)
+            setSubmitStatus('error')
             setSubmitMessage('No se pudo generar el payload del video.')
+            setLastPayloadPreview(JSON.stringify(draftSubmission, null, 2))
         } finally {
             setIsSubmitting(false)
         }
@@ -639,12 +664,15 @@ export const useVideoForm = () => {
             draftSubmission,
             isUploadingAssets,
             submitMessage,
+            submitStatus,
             lastPayloadPreview
         },
         actions: {
             resetForm,
             handleSubmit,
-            isSubmitting
+            isSubmitting,
+            submitMessage,
+            submitStatus
         }
     }
 }

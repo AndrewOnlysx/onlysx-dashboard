@@ -34,22 +34,34 @@ export interface VideoDraftSubmission {
     }
 }
 
+export interface SubmitCreateVideoDraftResult {
+    ok: boolean
+    message: string
+    video: unknown
+}
+
 export const submitCreateVideoDraft = async (draft: VideoDraftSubmission) => {
     const { payload, assets } = draft
     const result = await CreateVideo(payload)
 
-    console.log('Video creation result:', result)
     if (!result.ok) {
         return {
             ok: false,
-            message: 'Error al crear el video. Revisa la consola para más detalles.'
+            message: result.message || 'No se pudo guardar el video en la base de datos.',
+            video: null
         }
     }
 
+    console.log('[videos-admin] video guardado en base de datos', {
+        id: result.video?._id,
+        title: payload.title,
+        assets
+    })
 
     return {
         ok: true,
-        message: 'Payload enviado a consola. La conexion real con el server action queda pendiente.'
+        message: result.message || 'Video guardado correctamente en la base de datos.',
+        video: result.video
     }
 }
 

@@ -17,6 +17,9 @@ const VideoPreviewSidebar = ({ preview }: Props) => {
         Boolean(preview.activeCoverRemoteUrl),
         Boolean(preview.uploadedVideoUrl)
     ].filter(Boolean).length
+    const submitFeedbackClassName = preview.submitStatus === 'error'
+        ? 'border border-rose-400/20 bg-rose-400/10 text-rose-100'
+        : 'border border-emerald-400/20 bg-emerald-400/10 text-emerald-100'
 
     return (
         <aside className="space-y-6 xl:sticky xl:top-6 xl:self-start">
@@ -182,7 +185,7 @@ const VideoPreviewSidebar = ({ preview }: Props) => {
                     </pre>
 
                     {preview.submitMessage && (
-                        <div className="rounded-[24px] border border-emerald-400/20 bg-emerald-400/10 p-4 text-sm text-emerald-100">
+                        <div className={`rounded-[24px] p-4 text-sm ${submitFeedbackClassName}`}>
                             {preview.submitMessage}
                         </div>
                     )}
