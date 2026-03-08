@@ -165,7 +165,7 @@ const GaleriesAdminScreen = ({ galeries }: Props) => {
                             {/* Acciones */}
                             <div className="flex justify-between items-center px-4 pb-4 text-sm">
                                 <Link
-                                    href={`/admin/galeries/edit/${gallery._id}`}
+                                    href={`/pageClients/galeries/edit/${gallery._id}`}
                                     className="hover:underline"
                                 >
                                     Editar

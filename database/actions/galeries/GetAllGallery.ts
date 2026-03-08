@@ -1,3 +1,4 @@
+'use server'
 import { connectDB } from "@/database/utils/mongodb"
 import { Galeries } from "@/database/models/Galeries"
 import '@/database/models/Models'

@@ -1,6 +1,21 @@
 "use server"
 
 // Tipos basados en tus modelos
+export interface GalleryImageType {
+    filename: string
+    status: string
+    url: string
+}
+
+export interface GalleryType {
+    _id: string
+    name: string
+    images: GalleryImageType[]
+    isVisible?: boolean
+    updatedAt?: Date | string
+    createdAt?: Date | string
+}
+
 export interface VideoType {
     _id: string
     title: string
@@ -11,6 +26,7 @@ export interface VideoType {
     quality: string
     models: string[] | ModelType[]
     tags: string[] | TagType[]
+    galeries?: string[] | GalleryType[]
     views?: number
     lastViews?: string
     searchPrarms: string[]

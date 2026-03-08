@@ -1,13 +1,12 @@
 import ContainerPage from '@/components/Layout/Layouts'
-import { Container } from 'lucide-react'
 import { NextPage } from 'next'
-import AddGalerieScreen from './components/AddGalerieScreen'
+import GalleryForm from '../components/GalleryForm'
 
 interface Props { }
 
 const Page: NextPage<Props> = ({ }) => {
     return <ContainerPage>
-        <AddGalerieScreen />
+        <GalleryForm mode="create" />
     </ContainerPage>
 }
 

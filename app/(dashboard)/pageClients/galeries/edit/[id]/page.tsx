@@ -1,7 +1,6 @@
 import { GetGaleriesById } from '@/database/actions/galeries/GetGaleriesById'
-import { Edit } from '@toolpad/core'
 import { NextPage } from 'next'
-import EditorGallery from './components/EditorGallery'
+import GalleryForm from '../../components/GalleryForm'
 
 interface Props {
     params: Promise<{ id: string }>
@@ -11,11 +10,7 @@ interface Props {
 const Page: NextPage<Props> = async ({ params }) => {
     const { id } = await params
     const { galeries } = await GetGaleriesById(id)
-    console.log({ galeries })
-    return <div>
-
-        <EditorGallery gallery={galeries} />
-    </div>
+    return <GalleryForm mode="edit" gallery={galeries} />
 }
 
 export default Page
