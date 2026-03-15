@@ -124,8 +124,8 @@ export const useVideoForm = ({
         : generatedCoverFile
             ? generatedCoverUpload.remoteUrl
             : persistedCoverUrl
-    const uploadedVideoUrl = videoFile ? videoUpload.remoteUrl : persistedVideoUrl
-    const dumpRemoteUrl = videoFile ? videoUpload.remoteUrl : (persistedDumpUrl || persistedVideoUrl)
+    const uploadedVideoUrl = videoUpload.remoteUrl || persistedVideoUrl
+    const dumpRemoteUrl = videoUpload.remoteUrl || persistedDumpUrl || persistedVideoUrl
     const dumpUrl = videoPreviewUrl || dumpRemoteUrl
     const previewWindows = buildPreviewWindows(videoDurationSeconds)
     const isUploadingAssets = [manualCoverUpload, generatedCoverUpload, videoUpload].some((upload) =>
@@ -590,14 +590,20 @@ export const useVideoForm = ({
 
         if (!title.trim()) nextErrors.title = 'El titulo es obligatorio.'
         if (!time.trim()) nextErrors.time = 'La duracion es obligatoria.'
-        if (!uploadedVideoUrl.trim()) {
+        if (videoFile && !videoUpload.remoteUrl.trim()) {
             nextErrors.video = videoFile
                 ? 'Espera a que el video termine de subirse.'
                 : 'Carga o conserva un video principal valido.'
+        } else if (!uploadedVideoUrl.trim()) {
+            nextErrors.video = 'Carga o conserva un video principal valido.'
         }
 
         if (!activeCoverUrl.trim()) {
             nextErrors.image = 'Carga una portada o genera una desde el video.'
+        } else if ((manualCoverFile || generatedCoverFile) && !activeCoverUpload.remoteUrl.trim()) {
+            nextErrors.image = activeCoverUpload.status === 'uploading' || activeCoverUpload.status === 'processing'
+                ? 'Espera a que la portada termine de subirse.'
+                : 'La portada nueva aun no tiene una URL remota valida.'
         } else if (!activeCoverRemoteUrl.trim()) {
             nextErrors.image = activeCoverUpload.status === 'uploading' || activeCoverUpload.status === 'processing'
                 ? 'Espera a que la portada termine de subirse.'
@@ -619,6 +625,8 @@ export const useVideoForm = ({
         setSubmitStatus('idle')
 
         if (Object.keys(nextErrors).length > 0) {
+            setSubmitStatus('error')
+            setSubmitMessage('Revisa los campos marcados antes de actualizar el video.')
             return
         }
 

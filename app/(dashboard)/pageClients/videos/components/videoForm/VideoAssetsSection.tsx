@@ -9,6 +9,24 @@ interface Props {
 }
 
 const VideoAssetsSection = ({ assets }: Props) => {
+    const videoStatusLabel = assets.videoFile
+        ? assets.videoUpload.status === 'success'
+            ? 'Listo'
+            : assets.videoUpload.status === 'error'
+                ? 'Error'
+                : assets.videoUpload.status === 'processing'
+                    ? 'Procesando'
+                    : 'En flujo'
+        : 'Pendiente'
+
+    const videoStatusStyles = assets.videoFile
+        ? assets.videoUpload.status === 'success'
+            ? 'success-pill'
+            : assets.videoUpload.status === 'error'
+                ? 'warning-pill'
+                : 'accent-pill'
+        : 'muted-pill'
+
     const coverSourceLabel = assets.manualCoverFile
         ? 'Manual'
         : assets.generatedCoverFile
@@ -133,11 +151,8 @@ const VideoAssetsSection = ({ assets }: Props) => {
                         <div className="mt-4 space-y-2">
                             <div className="flex items-center justify-between gap-3">
                                 <p className="text-sm font-semibold text-white">Video principal</p>
-                                <span className={`rounded-full px-3 py-1 text-[11px] uppercase tracking-[0.22em] ${assets.videoFile
-                                    ? 'accent-pill'
-                                    : 'muted-pill'
-                                    }`}>
-                                    {assets.videoFile ? 'En flujo' : 'Pendiente'}
+                                <span className={`rounded-full px-3 py-1 text-[11px] uppercase tracking-[0.22em] ${videoStatusStyles}`}>
+                                    {videoStatusLabel}
                                 </span>
                             </div>
                             <p className="text-sm text-zinc-400">
@@ -209,6 +224,11 @@ const VideoAssetsSection = ({ assets }: Props) => {
                             ? 'La subida sigue en curso. El payload final usara las URLs remotas cuando ambas esten listas.'
                             : 'Cuando ambos assets esten subidos, el payload quedara listo para persistirse.'}
                     </p>
+                    {assets.uploadedVideoUrl && (
+                        <p className="mt-3 truncate text-xs text-zinc-500">
+                            URL activa del video: {assets.uploadedVideoUrl}
+                        </p>
+                    )}
                 </div>
             </div>
 
