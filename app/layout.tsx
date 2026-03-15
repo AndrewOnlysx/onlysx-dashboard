@@ -3,49 +3,45 @@ import { NextAppProvider } from '@toolpad/core/nextjs';
 import { AppRouterCacheProvider } from '@mui/material-nextjs/v15-appRouter';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import PersonIcon from '@mui/icons-material/Person';
-import { Container, ThemeProvider } from '@mui/material';
 import type { Navigation } from '@toolpad/core/AppProvider';
 import { SessionProvider, signIn, signOut } from 'next-auth/react';
 import { auth } from '../auth';
 import { theme } from '@/theme/ThemeColors';
-import Image from 'next/image';
 import { AnalysisTextLinkIcon } from '@hugeicons-pro/core-stroke-rounded';
 
 import { WebDesign02Icon } from '@hugeicons-pro/core-solid-rounded';
 import { HighHeels02Icon, } from '@hugeicons-pro/core-solid-rounded';
 import { HugeiconsIcon } from '@hugeicons/react'
 import { Album01Icon } from '@hugeicons-pro/core-stroke-rounded';
-
-import ContainerPage from '@/components/Layout/Layouts';
 export const metadata = {
   title: 'ONLYSX',
-  description: 'This is a sample app built with Toolpad Core and Next.js',
+  description: 'Corporate media operations dashboard for ONLYSX',
 };
 
 const NAVIGATION: Navigation = [
   {
     kind: 'header',
-    title: 'Main items',
+    title: 'Control center',
   },
   {
     segment: '',
-    title: 'MUI components',
+    title: 'Dashboard',
     icon: <DashboardIcon />,
   },
   {
     segment: 'dataGrid',
-    title: 'MUI data grid',
+    title: 'Data Grid',
     icon: <PersonIcon />,
 
   },
   {
     segment: 'charts',
-    title: 'Charts',
+    title: 'Analytics',
     icon: <PersonIcon />,
   }, {
     kind: 'page',
     segment: 'pageClients',
-    title: 'Page clients',
+    title: 'Catalogo',
     icon: <HugeiconsIcon
       icon={WebDesign02Icon}
       size={24}
@@ -102,7 +98,7 @@ const NAVIGATION: Navigation = [
 ];
 
 const BRANDING = {
-  title: '',
+  title: 'ONLYSX Dashboard',
   logo: <img src='/assets/logo.svg' />,
 };
 

@@ -6,13 +6,13 @@ interface Props {
 
 const VideoBasicInfoSection = ({ basicInfo }: Props) => {
     return (
-        <section className="rounded-[28px] border border-white/10 bg-zinc-950/75 p-6 shadow-[0_24px_70px_rgba(0,0,0,0.35)]">
+        <section className="surface-panel p-6">
             <div className="mb-6 flex items-center justify-between gap-4">
                 <div>
                     <h2 className="text-xl font-semibold">Informacion base</h2>
                     <p className="mt-1 text-sm text-zinc-400">Titulo, duracion y calidad visible en cards y vistas internas.</p>
                 </div>
-                <div className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs uppercase tracking-[0.24em] text-zinc-300">
+                <div className="muted-pill">
                     Paso 1
                 </div>
             </div>
@@ -24,7 +24,7 @@ const VideoBasicInfoSection = ({ basicInfo }: Props) => {
                         value={basicInfo.title}
                         onChange={(event) => basicInfo.setTitle(event.target.value)}
                         placeholder="Ej. Summer rooftop casting"
-                        className="w-full rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm outline-none transition placeholder:text-zinc-600 focus:border-white/30"
+                        className="app-input"
                     />
                     {basicInfo.errors.title && <p className="text-sm text-rose-300">{basicInfo.errors.title}</p>}
                 </label>
@@ -35,7 +35,7 @@ const VideoBasicInfoSection = ({ basicInfo }: Props) => {
                         value={basicInfo.time}
                         onChange={(event) => basicInfo.setTime(event.target.value)}
                         placeholder="Se completa desde el video, pero puedes ajustarla"
-                        className="w-full rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm outline-none transition placeholder:text-zinc-600 focus:border-white/30"
+                        className="app-input"
                     />
                     {basicInfo.errors.time && <p className="text-sm text-rose-300">{basicInfo.errors.time}</p>}
                 </label>
@@ -46,7 +46,7 @@ const VideoBasicInfoSection = ({ basicInfo }: Props) => {
                         <select
                             value={basicInfo.qualityPreset}
                             onChange={(event) => basicInfo.setQualityPreset(event.target.value as typeof basicInfo.qualityPreset)}
-                            className="w-full rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm outline-none transition focus:border-white/30"
+                            className="app-input"
                         >
                             {basicInfo.qualityOptions.map((quality) => (
                                 <option key={quality} value={quality}>
@@ -61,7 +61,7 @@ const VideoBasicInfoSection = ({ basicInfo }: Props) => {
                                 value={basicInfo.customQuality}
                                 onChange={(event) => basicInfo.setCustomQuality(event.target.value)}
                                 placeholder="Ej. 2160p HDR"
-                                className="w-full rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm outline-none transition placeholder:text-zinc-600 focus:border-white/30"
+                                className="app-input"
                             />
                         )}
                     </div>

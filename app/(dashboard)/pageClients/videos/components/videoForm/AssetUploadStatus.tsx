@@ -18,11 +18,11 @@ interface Props {
 }
 
 const STATUS_STYLES: Record<UploadState['status'], string> = {
-    idle: 'border border-white/10 bg-white/5 text-zinc-400',
-    uploading: 'border border-cyan-400/20 bg-cyan-400/10 text-cyan-100',
-    processing: 'border border-amber-400/20 bg-amber-400/10 text-amber-100',
-    success: 'border border-emerald-400/20 bg-emerald-400/10 text-emerald-100',
-    error: 'border border-rose-400/20 bg-rose-400/10 text-rose-100'
+    idle: 'muted-pill',
+    uploading: 'accent-pill',
+    processing: 'warning-pill',
+    success: 'success-pill',
+    error: 'danger-action'
 }
 
 const STATUS_LABELS: Record<UploadState['status'], string> = {
@@ -50,12 +50,16 @@ const AssetUploadStatus = ({ title, file, state, emptyMessage }: Props) => {
             </div>
 
             <p className="mt-2 text-sm text-zinc-400">
-                {file ? `${file.name} • ${formatFileSize(file.size)}` : emptyMessage}
+                {file
+                    ? `${file.name} • ${formatFileSize(file.size)}`
+                    : state.remoteUrl
+                        ? 'Asset remoto ya disponible. No necesita volver a subirse.'
+                        : emptyMessage}
             </p>
 
             <div className="mt-4 h-2 overflow-hidden rounded-full bg-white/8">
                 <div
-                    className={`h-full rounded-full transition-all ${state.status === 'error' ? 'bg-rose-400' : 'bg-[linear-gradient(90deg,_#38bdf8,_#22c55e)]'}`}
+                    className={`h-full rounded-full transition-all ${state.status === 'error' ? 'bg-rose-400' : 'bg-[linear-gradient(90deg,_#FF50A4,_#FF89C1)]'}`}
                     style={{ width: `${progressWidth}%` }}
                 />
             </div>
@@ -64,7 +68,9 @@ const AssetUploadStatus = ({ title, file, state, emptyMessage }: Props) => {
                 <span>
                     {state.totalBytes > 0
                         ? `${formatFileSize(state.uploadedBytes)} / ${formatFileSize(state.totalBytes)}`
-                        : 'Esperando archivo'}
+                        : state.remoteUrl
+                            ? 'Persistido'
+                            : 'Esperando archivo'}
                 </span>
                 <span>
                     {state.totalBytes > 0 && state.status !== 'success'

@@ -88,8 +88,8 @@ export default function EditModelForm({ model }: Props) {
     ============================== */
 
     return (
-        <Box maxWidth={500} mx="auto" mt={8} px={2}>
-            <Paper elevation={4} sx={{ p: 4, borderRadius: 3 }}>
+        <Box maxWidth={640} mx="auto" px={2}>
+            <Paper elevation={0} sx={{ p: 4, borderRadius: 4 }}>
 
                 <Typography variant="h5" fontWeight={600} mb={4}>
                     Editar Modelo

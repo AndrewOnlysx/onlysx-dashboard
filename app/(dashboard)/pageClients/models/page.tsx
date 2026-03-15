@@ -8,7 +8,11 @@ interface Props { }
 const Page: NextPage<Props> = async ({ }) => {
     const { models } = await GetModels()
 
-    return <ContainerPage>
+    return <ContainerPage
+        eyebrow="Catalogo"
+        title="Modelos"
+        description="Administra perfiles, assets visuales y accesos a la vista publica de cada modelo desde una unica tabla operativa."
+    >
         <GridModels models={models} />
     </ContainerPage>
 }

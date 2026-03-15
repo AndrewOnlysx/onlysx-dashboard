@@ -1,7 +1,11 @@
-import CreateVideo from '@/database/actions/videos/CreateVideo'
+import SaveVideo from '@/database/actions/videos/SaveVideo'
 import type { CreateVideoPayload } from '@/lib/videos/admin'
+import type { VideoType } from '@/types/Types'
+import type { VideoFormMode } from '../components/videoForm/formConfig'
 
 export interface VideoDraftSubmission {
+    mode: VideoFormMode
+    videoId: string | null
     payload: CreateVideoPayload
     assets: {
         cover: null | {
@@ -37,12 +41,15 @@ export interface VideoDraftSubmission {
 export interface SubmitCreateVideoDraftResult {
     ok: boolean
     message: string
-    video: unknown
+    video: VideoType | null
 }
 
 export const submitCreateVideoDraft = async (draft: VideoDraftSubmission) => {
-    const { payload, assets } = draft
-    const result = await CreateVideo(payload)
+    const { payload, assets, mode, videoId } = draft
+    const result = await SaveVideo({
+        ...payload,
+        videoId
+    })
 
     if (!result.ok) {
         return {
@@ -53,6 +60,7 @@ export const submitCreateVideoDraft = async (draft: VideoDraftSubmission) => {
     }
 
     console.log('[videos-admin] video guardado en base de datos', {
+        mode,
         id: result.video?._id,
         title: payload.title,
         assets
@@ -60,7 +68,11 @@ export const submitCreateVideoDraft = async (draft: VideoDraftSubmission) => {
 
     return {
         ok: true,
-        message: result.message || 'Video guardado correctamente en la base de datos.',
+        message: result.message || (
+            mode === 'edit'
+                ? 'Video actualizado correctamente en la base de datos.'
+                : 'Video guardado correctamente en la base de datos.'
+        ),
         video: result.video
     }
 }

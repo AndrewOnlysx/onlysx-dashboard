@@ -108,10 +108,10 @@ const VideoAdminScreen = ({ videos, summary, qualities }: Props) => {
 
     return (
         <div className="space-y-8 text-white">
-            <section className="overflow-hidden rounded-[32px] border border-white/10 bg-[radial-gradient(circle_at_top_left,_rgba(244,114,182,0.24),_transparent_30%),radial-gradient(circle_at_top_right,_rgba(96,165,250,0.24),_transparent_26%),linear-gradient(135deg,_rgba(24,24,27,0.98),_rgba(9,9,11,0.96))] p-6 sm:p-8">
+            <section className="surface-panel surface-panel--hero overflow-hidden p-6 sm:p-8">
                 <div className="flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
                     <div className="max-w-3xl space-y-3">
-                        <span className="inline-flex w-fit rounded-full border border-white/15 bg-white/8 px-3 py-1 text-xs uppercase tracking-[0.28em] text-zinc-300">
+                        <span className="page-shell__eyebrow">
                             Videos admin
                         </span>
                         <div className="space-y-2">
@@ -119,7 +119,7 @@ const VideoAdminScreen = ({ videos, summary, qualities }: Props) => {
                                 Libreria de videos lista para operar desde el dashboard
                             </h1>
                             <p className="max-w-2xl text-sm leading-6 text-zinc-300 sm:text-base">
-                                Revisa la portada, calidad, relaciones con modelos/tags y el estado de cada asset antes de conectar la creacion real con el backend.
+                                Revisa la portada, calidad, relaciones con modelos/tags y entra directo al editor haciendo click sobre cualquier card del listado.
                             </p>
                         </div>
                     </div>
@@ -127,11 +127,11 @@ const VideoAdminScreen = ({ videos, summary, qualities }: Props) => {
                     <div className="flex flex-col gap-3 sm:flex-row">
                         <Link
                             href="/pageClients/videos/addVideo"
-                            className="inline-flex items-center justify-center rounded-full bg-white px-5 py-3 text-sm font-semibold text-black transition hover:bg-zinc-200"
+                            className="primary-action"
                         >
                             Nuevo video
                         </Link>
-                        <div className="rounded-full border border-white/12 bg-black/20 px-5 py-3 text-sm text-zinc-300">
+                        <div className="secondary-action text-sm font-medium">
                             {summary.totalVideos} registros cargados
                         </div>
                     </div>
@@ -142,7 +142,7 @@ const VideoAdminScreen = ({ videos, summary, qualities }: Props) => {
                 {statCards.map((card) => (
                     <article
                         key={card.label}
-                        className="rounded-[28px] border border-white/10 bg-zinc-950/70 p-5 shadow-[0_24px_70px_rgba(0,0,0,0.35)]"
+                        className="surface-metric p-5"
                     >
                         <p className="text-xs uppercase tracking-[0.24em] text-zinc-500">{card.label}</p>
                         <p className="mt-4 text-3xl font-semibold">{card.value}</p>
@@ -151,7 +151,7 @@ const VideoAdminScreen = ({ videos, summary, qualities }: Props) => {
                 ))}
             </section>
 
-            <section className="rounded-[28px] border border-white/10 bg-zinc-950/70 p-5 shadow-[0_24px_70px_rgba(0,0,0,0.35)]">
+            <section className="surface-panel p-5">
                 <div className="grid gap-4 xl:grid-cols-[minmax(0,1.6fr)_220px_220px]">
                     <label className="space-y-2">
                         <span className="text-xs uppercase tracking-[0.24em] text-zinc-500">Buscar</span>
@@ -159,7 +159,7 @@ const VideoAdminScreen = ({ videos, summary, qualities }: Props) => {
                             value={search}
                             onChange={(event) => setSearch(event.target.value)}
                             placeholder="Titulo, tag, modelo, keyword o galeria"
-                            className="w-full rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm outline-none transition placeholder:text-zinc-600 focus:border-white/30"
+                            className="app-input"
                         />
                     </label>
 
@@ -168,7 +168,7 @@ const VideoAdminScreen = ({ videos, summary, qualities }: Props) => {
                         <select
                             value={selectedQuality}
                             onChange={(event) => setSelectedQuality(event.target.value)}
-                            className="w-full rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm outline-none transition focus:border-white/30"
+                            className="app-input"
                         >
                             <option value="all">Todas</option>
                             {qualities.map((quality) => (
@@ -184,7 +184,7 @@ const VideoAdminScreen = ({ videos, summary, qualities }: Props) => {
                         <select
                             value={sortBy}
                             onChange={(event) => setSortBy(event.target.value as typeof sortBy)}
-                            className="w-full rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm outline-none transition focus:border-white/30"
+                            className="app-input"
                         >
                             <option value="newest">Mas recientes</option>
                             <option value="oldest">Mas antiguos</option>
@@ -202,9 +202,10 @@ const VideoAdminScreen = ({ videos, summary, qualities }: Props) => {
                     const galeries = getGaleries(video)
 
                     return (
-                        <article
+                        <Link
                             key={video._id}
-                            className="group overflow-hidden rounded-[30px] border border-white/10 bg-zinc-950/80 transition hover:-translate-y-1 hover:border-white/20 hover:shadow-[0_28px_90px_rgba(0,0,0,0.45)]"
+                            href={`/pageClients/videos/edit/${video._id}`}
+                            className="interactive-card group block overflow-hidden"
                         >
                             <div className="relative aspect-video overflow-hidden bg-zinc-900">
                                 <img
@@ -219,7 +220,7 @@ const VideoAdminScreen = ({ videos, summary, qualities }: Props) => {
                                     <span className="rounded-full bg-black/70 px-3 py-1 text-xs font-medium text-white backdrop-blur">
                                         {video.quality}
                                     </span>
-                                    <span className="rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-medium text-zinc-100 backdrop-blur">
+                                    <span className="muted-pill border-0 font-medium normal-case tracking-normal text-zinc-100 backdrop-blur">
                                         {video.time}
                                     </span>
                                 </div>
@@ -270,9 +271,9 @@ const VideoAdminScreen = ({ videos, summary, qualities }: Props) => {
                                         {models.slice(0, 3).map((model) => (
                                             <span
                                                 key={model._id}
-                                                className="inline-flex items-center gap-2 rounded-full border border-cyan-400/20 bg-cyan-400/10 px-3 py-1 text-xs text-cyan-200"
+                                                className="accent-pill normal-case tracking-normal text-xs"
                                             >
-                                                <span className="h-2 w-2 rounded-full bg-cyan-300" />
+                                                <span className="h-2 w-2 rounded-full bg-[var(--primary)]" />
                                                 {model.name}
                                             </span>
                                         ))}
@@ -282,7 +283,7 @@ const VideoAdminScreen = ({ videos, summary, qualities }: Props) => {
                                         {tags.slice(0, 4).map((tag) => (
                                             <span
                                                 key={tag._id}
-                                                className="rounded-full border border-fuchsia-400/20 bg-fuchsia-400/10 px-3 py-1 text-xs text-fuchsia-200"
+                                                className="muted-pill normal-case tracking-normal text-xs"
                                             >
                                                 #{tag.name}
                                             </span>
@@ -295,13 +296,13 @@ const VideoAdminScreen = ({ videos, summary, qualities }: Props) => {
                                     <span>{galeries.length > 0 ? `${galeries.length} galerias enlazadas` : 'Sin galerias enlazadas'}</span>
                                 </div>
                             </div>
-                        </article>
+                        </Link>
                     )
                 })}
             </section>
 
             {filteredVideos.length === 0 && (
-                <section className="rounded-[28px] border border-dashed border-white/12 bg-zinc-950/50 px-6 py-16 text-center">
+                <section className="empty-state px-6 py-16 text-center">
                     <p className="text-lg font-medium text-white">No hay videos que coincidan con los filtros actuales.</p>
                     <p className="mt-2 text-sm text-zinc-400">
                         Ajusta la busqueda o crea un nuevo registro desde el formulario de alta.

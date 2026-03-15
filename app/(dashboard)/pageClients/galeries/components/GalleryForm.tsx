@@ -299,51 +299,59 @@ const GalleryForm: NextPage<Props> = ({ mode, gallery }) => {
     })
 
     return (
-        <div className="max-w-7xl mx-auto p-6 text-white">
-            <h1 className="text-2xl font-bold mb-8">
-                {isEdit ? 'Editar Galería' : 'Crear Nueva Galería'}
-            </h1>
+        <div className="mx-auto max-w-7xl text-white">
+            <div className="surface-panel surface-panel--hero mb-8 p-6">
+                <span className="page-shell__eyebrow">{isEdit ? 'Edit gallery' : 'Create gallery'}</span>
+                <h1 className="mt-4 text-3xl font-semibold tracking-tight">
+                    {isEdit ? 'Editar galeria' : 'Crear nueva galeria'}
+                </h1>
+                <p className="mt-3 max-w-3xl text-sm leading-6 text-[var(--muted-foreground)]">
+                    Define nombre, relaciones editoriales e imagenes desde una sola superficie de trabajo con controles uniformes.
+                </p>
+            </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
-                <div className="lg:col-span-1 space-y-6">
-                    <div>
-                        <label className="block text-sm mb-2">Nombre</label>
-                        <input
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                            className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-4 py-2"
-                        />
-                    </div>
+                <div className="surface-panel lg:col-span-1 space-y-6 p-6">
+                    <div className="space-y-6">
+                        <div>
+                            <label className="block text-sm mb-2">Nombre</label>
+                            <input
+                                value={name}
+                                onChange={(e) => setName(e.target.value)}
+                                className="app-input"
+                            />
+                        </div>
 
-                    <div>
-                        <label className="block text-sm mb-2">Video</label>
-                        <input
-                            value={video}
-                            onChange={(e) => setVideo(e.target.value)}
-                            className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-4 py-2"
-                        />
-                    </div>
+                        <div>
+                            <label className="block text-sm mb-2">Video</label>
+                            <input
+                                value={video}
+                                onChange={(e) => setVideo(e.target.value)}
+                                className="app-input"
+                            />
+                        </div>
 
-                    <div>
-                        <label className="block text-sm mb-2">Modelo</label>
-                        <SelectModel selectedModels={selectedModels} setSelectedModels={setSelectedModels} />
-                    </div>
+                        <div>
+                            <label className="block text-sm mb-2">Modelo</label>
+                            <SelectModel selectedModels={selectedModels} setSelectedModels={setSelectedModels} />
+                        </div>
 
-                    <div>
-                        <label className="block text-sm mb-2">Tags</label>
-                        <Selectag selectedTags={selectedTags} setSelectedTags={setSelectedTags} />
-                    </div>
+                        <div>
+                            <label className="block text-sm mb-2">Tags</label>
+                            <Selectag selectedTags={selectedTags} setSelectedTags={setSelectedTags} />
+                        </div>
 
-                    <button
-                        onClick={handleSave}
-                        disabled={loading}
-                        className="w-full bg-white text-black py-2 rounded-lg font-medium hover:bg-zinc-200 disabled:opacity-50"
-                    >
-                        {loading ? 'Guardando...' : isEdit ? 'Guardar cambios' : 'Crear galería'}
-                    </button>
+                        <button
+                            onClick={handleSave}
+                            disabled={loading}
+                            className="primary-action w-full disabled:opacity-50"
+                        >
+                            {loading ? 'Guardando...' : isEdit ? 'Guardar cambios' : 'Crear galería'}
+                        </button>
+                    </div>
                 </div>
 
-                <div className="lg:col-span-2">
+                <div className="surface-panel lg:col-span-2 p-6">
                     <div className="flex justify-between items-center mb-6">
                         <h2 className="font-semibold text-lg">
                             Imágenes ({images.length})
@@ -352,14 +360,14 @@ const GalleryForm: NextPage<Props> = ({ mode, gallery }) => {
                         <div className="flex gap-2">
                             <button
                                 onClick={() => setViewMode('grid')}
-                                className={`px-3 py-1 rounded ${viewMode === 'grid' ? 'bg-white text-black' : 'bg-zinc-800'}`}
+                                className={viewMode === 'grid' ? 'accent-pill normal-case tracking-normal' : 'secondary-action px-3 py-1.5 text-xs'}
                             >
                                 Cuadrícula
                             </button>
 
                             <button
                                 onClick={() => setViewMode('list')}
-                                className={`px-3 py-1 rounded ${viewMode === 'list' ? 'bg-white text-black' : 'bg-zinc-800'}`}
+                                className={viewMode === 'list' ? 'accent-pill normal-case tracking-normal' : 'secondary-action px-3 py-1.5 text-xs'}
                             >
                                 Lista
                             </button>
@@ -368,7 +376,7 @@ const GalleryForm: NextPage<Props> = ({ mode, gallery }) => {
 
                     <div
                         {...getRootProps()}
-                        className="max-h-[800px] overflow-y-auto border-2 border-dashed border-zinc-700 rounded-lg p-4 relative cursor-pointer"
+                        className="relative max-h-[800px] cursor-pointer overflow-y-auto rounded-[24px] border-2 border-dashed border-[var(--border)] p-4"
                     >
                         <input {...getInputProps()} />
 
@@ -399,7 +407,7 @@ const GalleryForm: NextPage<Props> = ({ mode, gallery }) => {
                                 {images.map((img, index) => (
                                     <div
                                         key={`${img.filename}-${index}`}
-                                        className="flex items-center gap-4 bg-zinc-900 rounded-lg p-3"
+                                        className="flex items-center gap-4 rounded-[18px] border border-[var(--border)] bg-white/[0.02] p-3"
                                     >
                                         <img
                                             src={img.url}
@@ -415,7 +423,7 @@ const GalleryForm: NextPage<Props> = ({ mode, gallery }) => {
                                                 event.stopPropagation()
                                                 removeImage(index)
                                             }}
-                                            className="bg-red-600 text-xs px-3 py-1 rounded"
+                                            className="danger-action px-3 py-1 text-xs"
                                         >
                                             Eliminar
                                         </button>
@@ -440,7 +448,7 @@ interface ImageCardProps {
 }
 
 const ImageCard = ({ img, index, replaceImage, removeImage, loading, isEdit }: ImageCardProps) => (
-    <div className="relative group rounded-lg overflow-hidden bg-zinc-900" onClick={(event) => event.stopPropagation()}>
+    <div className="relative group overflow-hidden rounded-[20px] border border-[var(--border)] bg-white/[0.02]" onClick={(event) => event.stopPropagation()}>
         <div
             style={{
                 position: 'absolute',
@@ -460,14 +468,14 @@ const ImageCard = ({ img, index, replaceImage, removeImage, loading, isEdit }: I
         <Image src={img.url} alt={`Imagen ${index}`} width={400} height={160} className="w-full h-40 object-cover" />
 
         {img.isNew && (
-            <div className="absolute top-2 left-2 bg-green-600 text-xs px-2 py-1 rounded">
+            <div className="success-pill absolute top-2 left-2 normal-case tracking-normal text-xs">
                 Nueva
             </div>
         )}
 
         <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition flex items-center justify-center gap-3">
             {isEdit && (
-                <label className="bg-white text-black text-xs px-3 py-1 rounded cursor-pointer">
+                <label className="primary-action cursor-pointer px-3 py-1 text-xs">
                     Cambiar
                     <input
                         type="file"
@@ -484,7 +492,7 @@ const ImageCard = ({ img, index, replaceImage, removeImage, loading, isEdit }: I
 
             <button
                 onClick={() => removeImage(index)}
-                className="bg-red-600 text-white text-xs px-3 py-1 rounded cursor-pointer"
+                className="danger-action cursor-pointer px-3 py-1 text-xs"
             >
                 Eliminar
             </button>

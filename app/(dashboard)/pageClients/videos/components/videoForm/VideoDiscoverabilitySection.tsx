@@ -6,13 +6,13 @@ interface Props {
 
 const VideoDiscoverabilitySection = ({ discoverability }: Props) => {
     return (
-        <section className="rounded-[28px] border border-white/10 bg-zinc-950/75 p-6 shadow-[0_24px_70px_rgba(0,0,0,0.35)]">
+        <section className="surface-panel p-6">
             <div className="mb-6 flex items-center justify-between gap-4">
                 <div>
                     <h2 className="text-xl font-semibold">Discoverability y metricas</h2>
                     <p className="mt-1 text-sm text-zinc-400">Controla keywords manuales y campos heredados como views o lastViews.</p>
                 </div>
-                <div className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs uppercase tracking-[0.24em] text-zinc-300">
+                <div className="muted-pill">
                     Paso 4
                 </div>
             </div>
@@ -25,7 +25,7 @@ const VideoDiscoverabilitySection = ({ discoverability }: Props) => {
                         min={0}
                         value={discoverability.views}
                         onChange={(event) => discoverability.setViews(Number(event.target.value) || 0)}
-                        className="w-full rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm outline-none transition focus:border-white/30"
+                        className="app-input"
                     />
                 </label>
 
@@ -35,7 +35,7 @@ const VideoDiscoverabilitySection = ({ discoverability }: Props) => {
                         value={discoverability.lastViews}
                         onChange={(event) => discoverability.setLastViews(event.target.value)}
                         placeholder="Ej. 1.2K en las ultimas 24h"
-                        className="w-full rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm outline-none transition placeholder:text-zinc-600 focus:border-white/30"
+                        className="app-input"
                     />
                 </label>
 
@@ -54,12 +54,12 @@ const VideoDiscoverabilitySection = ({ discoverability }: Props) => {
                                     }
                                 }}
                                 placeholder="Agregar keyword manual y presionar Enter"
-                                className="w-full rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm outline-none transition placeholder:text-zinc-600 focus:border-white/30"
+                                className="app-input"
                             />
                             <button
                                 type="button"
                                 onClick={discoverability.commitKeyword}
-                                className="rounded-2xl border border-white/12 bg-white/5 px-5 py-3 text-sm font-medium transition hover:bg-white/10"
+                                className="secondary-action"
                             >
                                 Agregar
                             </button>
@@ -77,7 +77,7 @@ const VideoDiscoverabilitySection = ({ discoverability }: Props) => {
                                     key={keyword}
                                     type="button"
                                     onClick={() => discoverability.removeKeyword(keyword)}
-                                    className="rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1 text-xs text-emerald-200"
+                                    className="accent-pill normal-case tracking-normal text-xs"
                                 >
                                     {keyword} x
                                 </button>

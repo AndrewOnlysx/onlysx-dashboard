@@ -10,13 +10,13 @@ interface Props {
 
 const VideoRelationsSection = ({ relations }: Props) => {
     return (
-        <section className="rounded-[28px] border border-white/10 bg-zinc-950/75 p-6 shadow-[0_24px_70px_rgba(0,0,0,0.35)]">
+        <section className="surface-panel p-6">
             <div className="mb-6 flex items-center justify-between gap-4">
                 <div>
                     <h2 className="text-xl font-semibold">Relacion editorial</h2>
                     <p className="mt-1 text-sm text-zinc-400">Asocia el video con modelos, tags y galerias para ordenar el catalogo.</p>
                 </div>
-                <div className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs uppercase tracking-[0.24em] text-zinc-300">
+                <div className="muted-pill">
                     Paso 3
                 </div>
             </div>

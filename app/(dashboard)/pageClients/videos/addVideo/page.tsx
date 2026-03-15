@@ -1,16 +1,12 @@
 import { NextPage } from 'next'
 
-import ContainerPage from '@/components/Layout/Layouts'
+import VideoEditorScreen from '../components/VideoEditorScreen'
 
-import VideoForm from '../components/VideoForm'
-
-interface Props {}
+interface Props { }
 
 const Page: NextPage<Props> = () => {
     return (
-        <ContainerPage>
-            <VideoForm />
-        </ContainerPage>
+        <VideoEditorScreen mode="create" />
     )
 }
 

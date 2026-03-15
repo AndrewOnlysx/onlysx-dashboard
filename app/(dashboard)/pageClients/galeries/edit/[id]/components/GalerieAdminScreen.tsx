@@ -51,9 +51,26 @@ const GaleriesAdminScreen = ({ galeries }: Props) => {
     }
 
     return (
-        <div className="space-y-8">
+        <div className="space-y-8 text-white">
 
-            {/* 🔥 TOOLBAR */}
+            <section className="surface-panel surface-panel--hero p-6">
+                <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+                    <div>
+                        <span className="page-shell__eyebrow">Galerias admin</span>
+                        <h2 className="mt-4 text-3xl font-semibold tracking-tight">Biblioteca de galerias</h2>
+                        <p className="mt-3 max-w-2xl text-sm leading-6 text-[var(--muted-foreground)]">
+                            Revisa visibilidad, colecciones y acceso a la edicion desde un listado coherente con el sistema corporativo del dashboard.
+                        </p>
+                    </div>
+                    <Link
+                        href="galeries/addGallery"
+                        className="primary-action"
+                    >
+                        Nueva galeria
+                    </Link>
+                </div>
+            </section>
+
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
 
                 <div className="flex gap-4 flex-1">
@@ -62,7 +79,7 @@ const GaleriesAdminScreen = ({ galeries }: Props) => {
                         placeholder="Buscar galería..."
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
-                        className="px-4 py-2 rounded-lg bg-zinc-900 border border-zinc-700 w-full"
+                        className="app-input"
                     />
 
                     <select
@@ -70,7 +87,7 @@ const GaleriesAdminScreen = ({ galeries }: Props) => {
                         onChange={(e) =>
                             setFilter(e.target.value as any)
                         }
-                        className="px-4 py-2 rounded-lg bg-zinc-900 border border-zinc-700"
+                        className="app-input max-w-[180px]"
                     >
                         <option value="all">Todas</option>
                         <option value="visible">Visibles</option>
@@ -78,34 +95,26 @@ const GaleriesAdminScreen = ({ galeries }: Props) => {
                     </select>
                 </div>
 
-                <Link
-                    href="galeries/addGallery"
-                    className="px-5 py-2 bg-white text-black rounded-full font-medium hover:bg-zinc-200 transition"
-                >
-                    + Nueva Galería
-                </Link>
             </div>
 
-            {/* 🔥 BULK ACTIONS */}
             {selected.size > 0 && (
-                <div className="flex items-center gap-4 bg-zinc-900 p-4 rounded-xl border border-zinc-700">
+                <div className="surface-panel flex items-center gap-4 p-4">
                     <span>{selected.size} seleccionadas</span>
 
-                    <button className="text-green-400 hover:underline">
+                    <button className="success-pill normal-case tracking-normal">
                         Mostrar
                     </button>
 
-                    <button className="text-yellow-400 hover:underline">
+                    <button className="warning-pill normal-case tracking-normal">
                         Ocultar
                     </button>
 
-                    <button className="text-red-500 hover:underline">
+                    <button className="danger-action px-4 py-2 text-sm">
                         Eliminar
                     </button>
                 </div>
             )}
 
-            {/* 🔥 GRID */}
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                 {filtered.map((gallery) => {
                     const isSelected = selected.has(gallery._id)
@@ -115,13 +124,9 @@ const GaleriesAdminScreen = ({ galeries }: Props) => {
                             key={gallery._id}
                             className={`
                 relative
-                bg-zinc-900
-                rounded-2xl
+                                interactive-card
                 overflow-hidden
-                border
-                ${isSelected ? 'border-white' : 'border-zinc-800'}
-                hover:border-zinc-600
-                transition
+                                ${isSelected ? 'border-[rgba(255,80,164,0.45)]' : ''}
               `}
                         >
                             {/* Checkbox */}
@@ -156,7 +161,7 @@ const GaleriesAdminScreen = ({ galeries }: Props) => {
                                 </p>
 
                                 {!gallery.isVisible && (
-                                    <span className="inline-block text-xs bg-red-900/40 text-red-400 px-2 py-1 rounded-full">
+                                    <span className="warning-pill inline-flex normal-case tracking-normal text-xs">
                                         Oculta
                                     </span>
                                 )}
@@ -166,12 +171,12 @@ const GaleriesAdminScreen = ({ galeries }: Props) => {
                             <div className="flex justify-between items-center px-4 pb-4 text-sm">
                                 <Link
                                     href={`/pageClients/galeries/edit/${gallery._id}`}
-                                    className="hover:underline"
+                                    className="text-[var(--primary)] hover:underline"
                                 >
                                     Editar
                                 </Link>
 
-                                <button className="text-red-400 hover:underline">
+                                <button className="text-rose-300 hover:underline">
                                     Eliminar
                                 </button>
                             </div>
@@ -181,7 +186,7 @@ const GaleriesAdminScreen = ({ galeries }: Props) => {
             </div>
 
             {filtered.length === 0 && (
-                <div className="text-center text-zinc-500 py-20">
+                <div className="empty-state text-center text-zinc-500 py-20">
                     No se encontraron galerías.
                 </div>
             )}

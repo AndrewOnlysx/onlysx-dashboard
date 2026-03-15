@@ -5,13 +5,17 @@ import { GetVideos } from '@/database/actions/videos/GetVideos'
 
 import VideoAdminScreen from './components/VideoAdminScreen'
 
-interface Props {}
+interface Props { }
 
 const Page: NextPage<Props> = async () => {
     const { videos, summary, filters } = await GetVideos()
 
     return (
-        <ContainerPage>
+        <ContainerPage
+            eyebrow="Catalogo"
+            title="Videos"
+            description="Gestion centralizada del catalogo audiovisual con filtros, indicadores y acceso directo a la edicion de cada registro."
+        >
             <VideoAdminScreen
                 videos={videos}
                 summary={summary}

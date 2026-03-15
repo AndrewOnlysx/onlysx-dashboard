@@ -1,8 +1,10 @@
 'use client'
 
 import * as React from 'react'
-import { Box, Chip } from '@mui/material'
+import { Chip } from '@mui/material'
 import { DataGrid, GridColDef, GridToolbar } from '@mui/x-data-grid'
+
+import ContainerPage from '@/components/Layout/Layouts'
 
 const rows = [
     { id: 1, name: 'Joel', email: 'joel@test.com', status: 'active', role: 'Admin', age: 28 },
@@ -42,23 +44,29 @@ const columns: GridColDef[] = [
 
 export default function Page() {
     return (
-        <Box p={4} height="80vh">
-            <DataGrid
-                rows={rows}
-                columns={columns}
-                showToolbar
-                checkboxSelection
-                disableRowSelectionOnClick
-                pageSizeOptions={[5, 10, 20]}
-                initialState={{
-                    pagination: {
-                        paginationModel: { pageSize: 5, page: 0 },
-                    },
-                }}
-                slots={{
-                    toolbar: GridToolbar,
-                }}
-            />
-        </Box>
+        <ContainerPage
+            eyebrow="Operations"
+            title="Data grid corporativo"
+            description="Ejemplo operativo de tablas con toolbar, seleccion multiple y estados consistentes con el nuevo sistema visual."
+        >
+            <div className="surface-panel data-grid-shell p-4" style={{ height: '76vh' }}>
+                <DataGrid
+                    rows={rows}
+                    columns={columns}
+                    showToolbar
+                    checkboxSelection
+                    disableRowSelectionOnClick
+                    pageSizeOptions={[5, 10, 20]}
+                    initialState={{
+                        pagination: {
+                            paginationModel: { pageSize: 5, page: 0 },
+                        },
+                    }}
+                    slots={{
+                        toolbar: GridToolbar,
+                    }}
+                />
+            </div>
+        </ContainerPage>
     )
 }

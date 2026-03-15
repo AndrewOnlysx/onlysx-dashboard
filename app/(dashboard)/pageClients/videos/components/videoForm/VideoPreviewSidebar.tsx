@@ -23,7 +23,7 @@ const VideoPreviewSidebar = ({ preview }: Props) => {
 
     return (
         <aside className="space-y-6 xl:sticky xl:top-6 xl:self-start">
-            <section className="overflow-hidden rounded-[30px] border border-white/10 bg-zinc-950/80 shadow-[0_24px_70px_rgba(0,0,0,0.35)]">
+            <section className="surface-panel overflow-hidden">
                 <div className="group relative aspect-video overflow-hidden bg-zinc-900">
                     {preview.activeCoverUrl ? (
                         <img
@@ -32,7 +32,7 @@ const VideoPreviewSidebar = ({ preview }: Props) => {
                             className="h-full w-full object-cover"
                         />
                     ) : (
-                        <div className="flex h-full items-center justify-center bg-[radial-gradient(circle_at_center,_rgba(34,197,94,0.18),_transparent_45%),linear-gradient(180deg,_rgba(24,24,27,1),_rgba(9,9,11,1))] px-8 text-center text-sm text-zinc-500">
+                        <div className="flex h-full items-center justify-center bg-[radial-gradient(circle_at_center,_rgba(255,80,164,0.16),_transparent_45%),linear-gradient(180deg,_rgba(24,24,27,1),_rgba(9,9,11,1))] px-8 text-center text-sm text-zinc-500">
                             La portada horizontal aparecera aqui cuando subas una imagen o se genere desde el video.
                         </div>
                     )}
@@ -51,7 +51,7 @@ const VideoPreviewSidebar = ({ preview }: Props) => {
                                 {preview.dumpUrl ? 'El hover recorre pequenos snippets del dump, no reproduce el video completo.' : 'Esperando video para construir el dump.'}
                             </p>
                         </div>
-                        <span className="rounded-full border border-white/12 bg-black/40 px-3 py-1 text-xs text-zinc-200">
+                        <span className="muted-pill border-0 normal-case tracking-normal text-xs text-zinc-200">
                             {preview.manualCoverFile ? 'Cover manual' : preview.generatedCoverFile ? 'Cover auto' : 'Sin cover'}
                         </span>
                     </div>
@@ -60,10 +60,10 @@ const VideoPreviewSidebar = ({ preview }: Props) => {
                 <div className="space-y-5 p-5">
                     <div className="space-y-2">
                         <div className="flex items-center justify-between gap-3">
-                            <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs uppercase tracking-[0.24em] text-zinc-300">
+                            <span className="muted-pill">
                                 Preview admin
                             </span>
-                            <span className="rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1 text-xs text-emerald-200">
+                            <span className="accent-pill normal-case tracking-normal text-xs">
                                 {preview.currentQuality || 'Sin calidad'}
                             </span>
                         </div>
@@ -82,8 +82,8 @@ const VideoPreviewSidebar = ({ preview }: Props) => {
                                 <span className="text-zinc-300">{item.label}</span>
                                 <span
                                     className={`rounded-full px-3 py-1 text-xs ${item.done
-                                        ? 'border border-emerald-400/20 bg-emerald-400/10 text-emerald-200'
-                                        : 'border border-white/10 bg-white/5 text-zinc-400'
+                                        ? 'success-pill normal-case tracking-normal'
+                                        : 'muted-pill normal-case tracking-normal'
                                         }`}
                                 >
                                     {item.done ? 'Listo' : 'Pendiente'}
@@ -99,7 +99,7 @@ const VideoPreviewSidebar = ({ preview }: Props) => {
                         </div>
                         <div className="h-2 overflow-hidden rounded-full bg-white/8">
                             <div
-                                className="h-full rounded-full bg-[linear-gradient(90deg,_#22c55e,_#38bdf8)] transition-all"
+                                className="h-full rounded-full bg-[linear-gradient(90deg,_#FF50A4,_#FF89C1)] transition-all"
                                 style={{ width: `${(preview.completedChecklist / preview.checklist.length) * 100}%` }}
                             />
                         </div>
@@ -134,7 +134,7 @@ const VideoPreviewSidebar = ({ preview }: Props) => {
                             {preview.generatedSearchParams.map((keyword) => (
                                 <span
                                     key={keyword}
-                                    className="rounded-full border border-sky-400/20 bg-sky-400/10 px-3 py-1 text-xs text-sky-100"
+                                    className="accent-pill normal-case tracking-normal text-xs"
                                 >
                                     {keyword}
                                 </span>
@@ -144,7 +144,7 @@ const VideoPreviewSidebar = ({ preview }: Props) => {
                 </div>
             </section>
 
-            <section className="rounded-[30px] border border-white/10 bg-zinc-950/80 p-5 shadow-[0_24px_70px_rgba(0,0,0,0.35)]">
+            <section className="surface-panel p-5">
                 <div className="space-y-4">
                     <div>
                         <p className="text-xs uppercase tracking-[0.24em] text-zinc-500">Preview publico</p>
@@ -155,7 +155,7 @@ const VideoPreviewSidebar = ({ preview }: Props) => {
                 </div>
             </section>
 
-            <section className="rounded-[30px] border border-white/10 bg-zinc-950/80 p-5 shadow-[0_24px_70px_rgba(0,0,0,0.35)]">
+            <section className="surface-panel p-5">
                 <div className="space-y-4">
                     <div>
                         <p className="text-xs uppercase tracking-[0.24em] text-zinc-500">Dump manual</p>
@@ -173,10 +173,12 @@ const VideoPreviewSidebar = ({ preview }: Props) => {
                 </div>
             </section>
 
-            <section className="rounded-[30px] border border-white/10 bg-zinc-950/80 p-5 shadow-[0_24px_70px_rgba(0,0,0,0.35)]">
+            <section className="surface-panel p-5">
                 <div className="space-y-3">
                     <div>
-                        <p className="text-xs uppercase tracking-[0.24em] text-zinc-500">Payload listo para conectar</p>
+                        <p className="text-xs uppercase tracking-[0.24em] text-zinc-500">
+                            {preview.mode === 'edit' ? 'Payload listo para actualizar' : 'Payload listo para crear'}
+                        </p>
                         <h3 className="mt-2 text-lg font-semibold">Preview estructural</h3>
                     </div>
 

@@ -2,9 +2,10 @@ import { useEffect, useRef, useState } from 'react'
 import { useDropzone } from 'react-dropzone'
 
 import { VIDEO_QUALITY_OPTIONS, buildCreateVideoPayload, buildVideoSearchParams } from '@/lib/videos/admin'
-import { GalleryType, ModelType, TagType } from '@/types/Types'
+import { GalleryType, ModelType, TagType, VideoType } from '@/types/Types'
 
 import submitCreateVideoDraft, { VideoDraftSubmission } from '../../lib/createVideoDraft'
+import { createVideoFormInitialState, VideoFormInitialState, VideoFormMode } from './formConfig'
 import uploadVideoAsset, { VideoAssetUploadStatus, VideoAssetUploadTask } from './uploadVideoAsset'
 import { buildPreviewWindows, createPosterFromVideo, revokeObjectUrl } from './utils'
 
@@ -15,6 +16,11 @@ type FieldErrors = Partial<Record<
 
 type UploadKind = 'video' | 'manualCover' | 'generatedCover'
 type SubmitStatus = 'idle' | 'success' | 'error'
+
+interface UseVideoFormOptions {
+    mode?: VideoFormMode
+    initialVideo?: VideoType | null
+}
 
 export interface AssetUploadState {
     status: VideoAssetUploadStatus
@@ -36,37 +42,65 @@ const createInitialUploadState = (): AssetUploadState => ({
     error: ''
 })
 
+const createPersistedUploadState = (url: string): AssetUploadState =>
+    url
+        ? {
+            status: 'success',
+            progress: 100,
+            uploadedBytes: 0,
+            totalBytes: 0,
+            remainingBytes: 0,
+            remoteUrl: url,
+            error: ''
+        }
+        : createInitialUploadState()
+
 const isAbortError = (error: unknown) =>
     error instanceof DOMException && error.name === 'AbortError'
 
-export const useVideoForm = () => {
+export const useVideoForm = ({
+    mode = 'create',
+    initialVideo
+}: UseVideoFormOptions = {}) => {
     const uploadTasksRef = useRef<Record<UploadKind, VideoAssetUploadTask | null>>({
         video: null,
         manualCover: null,
         generatedCover: null
     })
     const videoSelectionRef = useRef(0)
+    const initialStateRef = useRef(
+        createVideoFormInitialState({
+            mode,
+            initialVideo
+        })
+    )
+    const isEdit = mode === 'edit'
 
-    const [title, setTitle] = useState('')
-    const [time, setTime] = useState('')
+    const [title, setTitle] = useState(initialStateRef.current.title)
+    const [time, setTime] = useState(initialStateRef.current.time)
+    const [persistedCoverUrl, setPersistedCoverUrl] = useState(initialStateRef.current.persistedCoverUrl)
+    const [persistedVideoUrl, setPersistedVideoUrl] = useState(initialStateRef.current.persistedVideoUrl)
+    const [persistedDumpUrl, setPersistedDumpUrl] = useState(initialStateRef.current.persistedDumpUrl)
     const [manualCoverFile, setManualCoverFile] = useState<File | null>(null)
     const [manualCoverUrl, setManualCoverUrl] = useState('')
     const [generatedCoverFile, setGeneratedCoverFile] = useState<File | null>(null)
     const [generatedCoverUrl, setGeneratedCoverUrl] = useState('')
     const [videoFile, setVideoFile] = useState<File | null>(null)
     const [videoPreviewUrl, setVideoPreviewUrl] = useState('')
-    const [videoDurationSeconds, setVideoDurationSeconds] = useState(0)
+    const [videoDurationSeconds, setVideoDurationSeconds] = useState(initialStateRef.current.videoDurationSeconds)
     const [manualCoverUpload, setManualCoverUpload] = useState<AssetUploadState>(createInitialUploadState)
     const [generatedCoverUpload, setGeneratedCoverUpload] = useState<AssetUploadState>(createInitialUploadState)
     const [videoUpload, setVideoUpload] = useState<AssetUploadState>(createInitialUploadState)
-    const [qualityPreset, setQualityPreset] = useState<(typeof VIDEO_QUALITY_OPTIONS)[number] | 'custom'>('1080p')
-    const [customQuality, setCustomQuality] = useState('')
-    const [views, setViews] = useState(0)
-    const [lastViews, setLastViews] = useState('')
-    const [selectedModels, setSelectedModels] = useState<ModelType[]>([])
-    const [selectedTags, setSelectedTags] = useState<TagType[]>([])
-    const [selectedGaleries, setSelectedGaleries] = useState<GalleryType[]>([])
-    const [manualSearchParams, setManualSearchParams] = useState<string[]>([])
+    const [qualityPreset, setQualityPreset] = useState<(typeof VIDEO_QUALITY_OPTIONS)[number] | 'custom'>(
+        initialStateRef.current.qualityPreset
+    )
+    const [customQuality, setCustomQuality] = useState(initialStateRef.current.customQuality)
+    const [views, setViews] = useState(initialStateRef.current.views)
+    const [lastViews, setLastViews] = useState(initialStateRef.current.lastViews)
+    const [selectedModels, setSelectedModels] = useState<ModelType[]>(initialStateRef.current.selectedModels)
+    const [selectedTags, setSelectedTags] = useState<TagType[]>(initialStateRef.current.selectedTags)
+    const [selectedGaleries, setSelectedGaleries] = useState<GalleryType[]>(initialStateRef.current.selectedGaleries)
+    const [manualSearchParams, setManualSearchParams] = useState<string[]>(initialStateRef.current.manualSearchParams)
     const [keywordInput, setKeywordInput] = useState('')
     const [errors, setErrors] = useState<FieldErrors>({})
     const [isSubmitting, setIsSubmitting] = useState(false)
@@ -77,13 +111,22 @@ export const useVideoForm = () => {
     const [lastPayloadPreview, setLastPayloadPreview] = useState<string | null>(null)
 
     const currentQuality = qualityPreset === 'custom' ? customQuality : qualityPreset
-    const activeCoverUrl = manualCoverUrl || generatedCoverUrl
-    const activeCoverUpload = manualCoverFile ? manualCoverUpload : generatedCoverUpload
+    const persistedCoverUpload = createPersistedUploadState(persistedCoverUrl)
+    const persistedVideoUpload = createPersistedUploadState(persistedVideoUrl)
+    const activeCoverUrl = manualCoverUrl || generatedCoverUrl || persistedCoverUrl
+    const activeCoverUpload = manualCoverFile
+        ? manualCoverUpload
+        : generatedCoverFile
+            ? generatedCoverUpload
+            : persistedCoverUpload
     const activeCoverRemoteUrl = manualCoverFile
         ? manualCoverUpload.remoteUrl
-        : generatedCoverUpload.remoteUrl
-    const uploadedVideoUrl = videoUpload.remoteUrl
-    const dumpUrl = uploadedVideoUrl || videoPreviewUrl
+        : generatedCoverFile
+            ? generatedCoverUpload.remoteUrl
+            : persistedCoverUrl
+    const uploadedVideoUrl = videoFile ? videoUpload.remoteUrl : persistedVideoUrl
+    const dumpRemoteUrl = videoFile ? videoUpload.remoteUrl : (persistedDumpUrl || persistedVideoUrl)
+    const dumpUrl = videoPreviewUrl || dumpRemoteUrl
     const previewWindows = buildPreviewWindows(videoDurationSeconds)
     const isUploadingAssets = [manualCoverUpload, generatedCoverUpload, videoUpload].some((upload) =>
         upload.status === 'uploading' || upload.status === 'processing'
@@ -101,7 +144,7 @@ export const useVideoForm = () => {
         time,
         image: activeCoverRemoteUrl,
         video: uploadedVideoUrl,
-        dump: uploadedVideoUrl,
+        dump: dumpRemoteUrl,
         quality: currentQuality,
         selectedModels,
         selectedTags,
@@ -112,6 +155,8 @@ export const useVideoForm = () => {
     })
 
     const draftSubmission: VideoDraftSubmission = {
+        mode,
+        videoId: initialStateRef.current.videoId,
         payload: payloadPreview,
         assets: {
             cover: manualCoverFile
@@ -134,7 +179,17 @@ export const useVideoForm = () => {
                         uploadedUrl: generatedCoverUpload.remoteUrl,
                         uploadStatus: generatedCoverUpload.status
                     }
-                    : null,
+                    : activeCoverRemoteUrl
+                        ? {
+                            name: 'persisted-cover',
+                            size: 0,
+                            type: 'remote',
+                            source: 'manual',
+                            previewUrl: activeCoverUrl,
+                            uploadedUrl: activeCoverRemoteUrl,
+                            uploadStatus: 'success'
+                        }
+                        : null,
             video: videoFile
                 ? {
                     name: videoFile.name,
@@ -144,12 +199,21 @@ export const useVideoForm = () => {
                     uploadedUrl: videoUpload.remoteUrl,
                     uploadStatus: videoUpload.status
                 }
-                : null,
-            dump: videoFile
+                : uploadedVideoUrl
+                    ? {
+                        name: 'persisted-video',
+                        size: 0,
+                        type: 'remote',
+                        previewUrl: dumpUrl,
+                        uploadedUrl: uploadedVideoUrl,
+                        uploadStatus: 'success'
+                    }
+                    : null,
+            dump: dumpUrl
                 ? {
                     source: 'derived-from-video',
                     previewUrl: dumpUrl,
-                    uploadedUrl: uploadedVideoUrl,
+                    uploadedUrl: dumpRemoteUrl,
                     mode: 'snippet-preview',
                     windows: previewWindows
                 }
@@ -198,6 +262,95 @@ export const useVideoForm = () => {
         const currentTask = uploadTasksRef.current[kind]
         uploadTasksRef.current[kind] = null
         currentTask?.abort()
+    }
+
+    const buildCurrentBaseState = (): VideoFormInitialState => ({
+        videoId: initialStateRef.current.videoId,
+        title: payloadPreview.title,
+        time: payloadPreview.time,
+        persistedCoverUrl: activeCoverRemoteUrl,
+        persistedVideoUrl: uploadedVideoUrl,
+        persistedDumpUrl: dumpRemoteUrl,
+        videoDurationSeconds,
+        qualityPreset,
+        customQuality,
+        views,
+        lastViews,
+        selectedModels: [...selectedModels],
+        selectedTags: [...selectedTags],
+        selectedGaleries: [...selectedGaleries],
+        manualSearchParams: [...manualSearchParams]
+    })
+
+    const clearManualCover = () => {
+        abortUpload('manualCover')
+        revokeObjectUrl(manualCoverUrl)
+        setManualCoverFile(null)
+        setManualCoverUrl('')
+        setManualCoverUpload(createInitialUploadState())
+    }
+
+    const clearVideoSelection = () => {
+        const baseState = initialStateRef.current
+
+        videoSelectionRef.current += 1
+        abortUpload('video')
+        abortUpload('generatedCover')
+        revokeObjectUrl(videoPreviewUrl)
+        revokeObjectUrl(generatedCoverUrl)
+        setVideoFile(null)
+        setVideoPreviewUrl('')
+        setGeneratedCoverFile(null)
+        setGeneratedCoverUrl('')
+        setVideoDurationSeconds(baseState.videoDurationSeconds)
+        setTime(baseState.time)
+        setIsGeneratingPreview(false)
+        setVideoUpload(createInitialUploadState())
+        setGeneratedCoverUpload(createInitialUploadState())
+    }
+
+    const applyBaseState = ({
+        nextBaseState,
+        nextSubmitMessage = '',
+        nextSubmitStatus = 'idle',
+        nextLastPayloadPreview = null
+    }: {
+        nextBaseState?: VideoFormInitialState
+        nextSubmitMessage?: string
+        nextSubmitStatus?: SubmitStatus
+        nextLastPayloadPreview?: string | null
+    } = {}) => {
+        const targetBaseState = nextBaseState ?? initialStateRef.current
+
+        initialStateRef.current = targetBaseState
+
+        clearManualCover()
+        clearVideoSelection()
+
+        setPersistedCoverUrl(targetBaseState.persistedCoverUrl)
+        setPersistedVideoUrl(targetBaseState.persistedVideoUrl)
+        setPersistedDumpUrl(targetBaseState.persistedDumpUrl)
+        setTitle(targetBaseState.title)
+        setTime(targetBaseState.time)
+        setVideoDurationSeconds(targetBaseState.videoDurationSeconds)
+        setQualityPreset(targetBaseState.qualityPreset)
+        setCustomQuality(targetBaseState.customQuality)
+        setViews(targetBaseState.views)
+        setLastViews(targetBaseState.lastViews)
+        setSelectedModels([...targetBaseState.selectedModels])
+        setSelectedTags([...targetBaseState.selectedTags])
+        setSelectedGaleries([...targetBaseState.selectedGaleries])
+        setManualSearchParams([...targetBaseState.manualSearchParams])
+        setKeywordInput('')
+        setErrors({})
+        setSubmitMessage(nextSubmitMessage)
+        setSubmitStatus(nextSubmitStatus)
+        setAssetMessage('')
+        setLastPayloadPreview(nextLastPayloadPreview)
+    }
+
+    const resetForm = () => {
+        applyBaseState()
     }
 
     const startUpload = ({
@@ -313,59 +466,6 @@ export const useVideoForm = () => {
             })
     }
 
-    const clearManualCover = () => {
-        abortUpload('manualCover')
-        revokeObjectUrl(manualCoverUrl)
-        setManualCoverFile(null)
-        setManualCoverUrl('')
-        setManualCoverUpload(createInitialUploadState())
-    }
-
-    const clearVideoSelection = () => {
-        videoSelectionRef.current += 1
-        abortUpload('video')
-        abortUpload('generatedCover')
-        revokeObjectUrl(videoPreviewUrl)
-        revokeObjectUrl(generatedCoverUrl)
-        setVideoFile(null)
-        setVideoPreviewUrl('')
-        setGeneratedCoverFile(null)
-        setGeneratedCoverUrl('')
-        setVideoDurationSeconds(0)
-        setTime('')
-        setIsGeneratingPreview(false)
-        setVideoUpload(createInitialUploadState())
-        setGeneratedCoverUpload(createInitialUploadState())
-    }
-
-    const resetForm = ({
-        submitMessage: nextSubmitMessage = '',
-        submitStatus: nextSubmitStatus = 'idle',
-        lastPayloadPreview: nextLastPayloadPreview = null
-    }: {
-        submitMessage?: string
-        submitStatus?: SubmitStatus
-        lastPayloadPreview?: string | null
-    } = {}) => {
-        clearManualCover()
-        clearVideoSelection()
-        setTitle('')
-        setQualityPreset('1080p')
-        setCustomQuality('')
-        setViews(0)
-        setLastViews('')
-        setSelectedModels([])
-        setSelectedTags([])
-        setSelectedGaleries([])
-        setManualSearchParams([])
-        setKeywordInput('')
-        setErrors({})
-        setSubmitMessage(nextSubmitMessage)
-        setSubmitStatus(nextSubmitStatus)
-        setAssetMessage('')
-        setLastPayloadPreview(nextLastPayloadPreview)
-    }
-
     const commitKeyword = () => {
         const normalizedKeyword = keywordInput.trim()
 
@@ -474,8 +574,8 @@ export const useVideoForm = () => {
 
             setGeneratedCoverFile(null)
             setGeneratedCoverUrl('')
-            setVideoDurationSeconds(0)
-            setTime('')
+            setVideoDurationSeconds(initialStateRef.current.videoDurationSeconds)
+            setTime(initialStateRef.current.time)
             setGeneratedCoverUpload(createInitialUploadState())
             setAssetMessage('No se pudo generar la portada automatica. Puedes cargar una portada manual.')
         } finally {
@@ -490,12 +590,10 @@ export const useVideoForm = () => {
 
         if (!title.trim()) nextErrors.title = 'El titulo es obligatorio.'
         if (!time.trim()) nextErrors.time = 'La duracion es obligatoria.'
-        if (!videoFile) {
-            nextErrors.video = 'Carga un video principal.'
-        } else if (!uploadedVideoUrl.trim()) {
-            nextErrors.video = isUploadingAssets
+        if (!uploadedVideoUrl.trim()) {
+            nextErrors.video = videoFile
                 ? 'Espera a que el video termine de subirse.'
-                : 'El video aun no tiene una URL remota valida.'
+                : 'Carga o conserva un video principal valido.'
         }
 
         if (!activeCoverUrl.trim()) {
@@ -536,14 +634,34 @@ export const useVideoForm = () => {
                 return
             }
 
-            resetForm({
-                submitMessage: response.message,
-                submitStatus: 'success'
-            })
+            if (isEdit) {
+                const nextBaseState = response.video
+                    ? createVideoFormInitialState({
+                        mode: 'edit',
+                        initialVideo: response.video
+                    })
+                    : buildCurrentBaseState()
+
+                applyBaseState({
+                    nextBaseState,
+                    nextSubmitMessage: response.message,
+                    nextSubmitStatus: 'success'
+                })
+            } else {
+                applyBaseState({
+                    nextBaseState: createVideoFormInitialState({ mode: 'create' }),
+                    nextSubmitMessage: response.message,
+                    nextSubmitStatus: 'success'
+                })
+            }
         } catch (error) {
             console.error('Error preparando el payload del video:', error)
             setSubmitStatus('error')
-            setSubmitMessage('No se pudo generar el payload del video.')
+            setSubmitMessage(
+                isEdit
+                    ? 'No se pudo actualizar el video.'
+                    : 'No se pudo guardar el video.'
+            )
             setLastPayloadPreview(JSON.stringify(draftSubmission, null, 2))
         } finally {
             setIsSubmitting(false)
@@ -599,7 +717,7 @@ export const useVideoForm = () => {
             videoFile,
             videoPreviewUrl,
             uploadedVideoUrl,
-            videoUpload,
+            videoUpload: videoFile ? videoUpload : persistedVideoUpload,
             dumpUrl,
             previewWindows,
             isGeneratingPreview,
@@ -640,6 +758,7 @@ export const useVideoForm = () => {
             removeKeyword
         },
         preview: {
+            mode,
             title,
             time,
             views,
@@ -654,7 +773,7 @@ export const useVideoForm = () => {
             generatedCoverUrl,
             videoFile,
             uploadedVideoUrl,
-            videoUpload,
+            videoUpload: videoFile ? videoUpload : persistedVideoUpload,
             checklist,
             completedChecklist,
             generatedSearchParams,

@@ -8,7 +8,11 @@ interface Props { }
 
 const Page: NextPage<Props> = async ({ }) => {
     const { galeries, ok } = await GetAllGalery()
-    return <ContainerPage>
+    return <ContainerPage
+        eyebrow="Catalogo"
+        title="Galerias"
+        description="Organiza colecciones de imagenes, visibilidad y relaciones editoriales dentro del mismo lenguaje visual del dashboard."
+    >
 
         <GaleriesAdminScreen galeries={galeries} />
     </ContainerPage>
