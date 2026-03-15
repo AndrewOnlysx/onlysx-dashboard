@@ -73,11 +73,13 @@ const AssetUploadStatus = ({ title, file, state, emptyMessage }: Props) => {
                             : 'Esperando archivo'}
                 </span>
                 <span>
-                    {state.totalBytes > 0 && state.status !== 'success'
-                        ? `${formatFileSize(state.remainingBytes)} restantes`
-                        : state.remoteUrl
-                            ? 'Disponible en CDN'
-                            : 'Sin URL remota'}
+                    {state.status === 'processing'
+                        ? 'Esperando confirmacion del servidor'
+                        : state.totalBytes > 0 && state.status !== 'success'
+                            ? `${formatFileSize(state.remainingBytes)} restantes`
+                            : state.remoteUrl
+                                ? 'Disponible en CDN'
+                                : 'Sin URL remota'}
                 </span>
             </div>
 

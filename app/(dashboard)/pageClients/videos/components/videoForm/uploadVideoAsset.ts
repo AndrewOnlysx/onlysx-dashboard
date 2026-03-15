@@ -55,6 +55,44 @@ export const uploadVideoAsset = ({
     const xhr = new XMLHttpRequest()
 
     const promise = new Promise<UploadedVideoAsset>((resolve, reject) => {
+        let settled = false
+
+        const safeParsePayload = () => {
+            if (xhr.response && typeof xhr.response === 'object') {
+                return xhr.response
+            }
+
+            if (!xhr.responseText) {
+                return null
+            }
+
+            try {
+                return JSON.parse(xhr.responseText)
+            } catch {
+                return null
+            }
+        }
+
+        const settleSuccess = (payload: unknown) => {
+            if (settled) {
+                return
+            }
+
+            settled = true
+            onStatusChange?.('success')
+            resolve((payload as { data: UploadedVideoAsset }).data)
+        }
+
+        const settleError = (payload?: unknown) => {
+            if (settled) {
+                return
+            }
+
+            settled = true
+            onStatusChange?.('error')
+            reject(new Error(getErrorMessage(payload)))
+        }
+
         xhr.open('POST', '/api/videos/uploadFiles')
         xhr.responseType = 'json'
 
@@ -94,25 +132,30 @@ export const uploadVideoAsset = ({
             })
         })
 
-        xhr.onload = () => {
-            const payload = xhr.response ?? JSON.parse(xhr.responseText || '{}')
-
-            if (xhr.status < 200 || xhr.status >= 300 || !payload?.ok || !payload?.data?.url) {
-                onStatusChange?.('error')
-                reject(new Error(getErrorMessage(payload)))
+        const finalizeRequest = () => {
+            if (xhr.readyState !== XMLHttpRequest.DONE || settled) {
                 return
             }
 
-            onStatusChange?.('success')
-            resolve(payload.data as UploadedVideoAsset)
+            const payload = safeParsePayload()
+
+            if (xhr.status < 200 || xhr.status >= 300 || !payload?.ok || !payload?.data?.url) {
+                settleError(payload)
+                return
+            }
+
+            settleSuccess(payload)
         }
 
+        xhr.onload = finalizeRequest
+        xhr.onreadystatechange = finalizeRequest
+
         xhr.onerror = () => {
-            onStatusChange?.('error')
-            reject(new Error('No se pudo completar la subida.'))
+            settleError({ message: 'No se pudo completar la subida.' })
         }
 
         xhr.onabort = () => {
+            settled = true
             reject(new DOMException('Upload aborted', 'AbortError'))
         }
 

@@ -7,6 +7,14 @@ export const revokeObjectUrl = (url: string) => {
 }
 
 export const formatFileSize = (size: number) => {
+    if (size <= 0) {
+        return '0 B'
+    }
+
+    if (size < 1024) {
+        return `${size} B`
+    }
+
     if (size >= 1024 * 1024 * 1024) {
         return `${(size / (1024 * 1024 * 1024)).toFixed(1)} GB`
     }
@@ -15,7 +23,7 @@ export const formatFileSize = (size: number) => {
         return `${(size / (1024 * 1024)).toFixed(1)} MB`
     }
 
-    return `${Math.max(1, Math.round(size / 1024))} KB`
+    return `${Math.max(0.1, size / 1024).toFixed(size < 10 * 1024 ? 1 : 0)} KB`
 }
 
 const getPosterFileName = (sourceName: string) => {
