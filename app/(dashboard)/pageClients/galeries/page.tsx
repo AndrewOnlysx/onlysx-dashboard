@@ -2,7 +2,7 @@ import GaleryView from '@/components/Gallery/GaleryView'
 import ContainerPage from '@/components/Layout/Layouts'
 import { GetAllGalery } from '@/database/actions/galeries/GetAllGallery'
 import { NextPage } from 'next'
-import GaleriesAdminScreen from './edit/[id]/components/GalerieAdminScreen'
+import GaleriesAdminScreen from './components/GaleriesAdminScreen'
 
 interface Props { }
 

@@ -104,14 +104,16 @@ const isUploadDescriptor = (payload: unknown): payload is { ok: true; data: Uplo
     }
 
     if (data.strategy === 'multipart') {
+        const parts = 'parts' in data ? data.parts : undefined
+
         return Boolean(
             'uploadId' in data &&
             typeof data.uploadId === 'string' &&
             data.uploadId.trim() &&
             'partSize' in data &&
             typeof data.partSize === 'number' &&
-            Array.isArray(data.parts) &&
-            data.parts.every((part) => (
+            Array.isArray(parts) &&
+            parts.every((part) => (
                 part &&
                 typeof part === 'object' &&
                 'partNumber' in part &&
