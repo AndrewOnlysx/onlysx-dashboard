@@ -52,7 +52,7 @@ const isUploadedVideoAsset = (payload: unknown): payload is { ok: true; data: Up
     )
 }
 
-const getErrorMessage = (payload: unknown) => {
+const getErrorMessage = (payload: unknown, status?: number) => {
     if (
         payload &&
         typeof payload === 'object' &&
@@ -60,6 +60,10 @@ const getErrorMessage = (payload: unknown) => {
         typeof payload.message === 'string'
     ) {
         return payload.message
+    }
+
+    if (status === 413) {
+        return 'El archivo es demasiado pesado para este endpoint. Intenta con un archivo mas pequeno o cambia la estrategia de subida.'
     }
 
     return 'No se pudo completar la subida.'
@@ -82,12 +86,32 @@ export const uploadVideoAsset = ({
                 return xhr.response
             }
 
-            if (!xhr.responseText) {
+            if (typeof xhr.response === 'string' && xhr.response.trim()) {
+                try {
+                    return JSON.parse(xhr.response)
+                } catch {
+                    return null
+                }
+            }
+
+            if (xhr.responseType !== '' && xhr.responseType !== 'text') {
+                return null
+            }
+
+            let responseText = ''
+
+            try {
+                responseText = xhr.responseText
+            } catch {
+                return null
+            }
+
+            if (!responseText) {
                 return null
             }
 
             try {
-                return JSON.parse(xhr.responseText)
+                return JSON.parse(responseText)
             } catch {
                 return null
             }
@@ -110,7 +134,7 @@ export const uploadVideoAsset = ({
 
             settled = true
             onStatusChange?.('error')
-            reject(new Error(getErrorMessage(payload)))
+            reject(new Error(getErrorMessage(payload, xhr.status)))
         }
 
         xhr.open('POST', '/api/videos/uploadFiles')

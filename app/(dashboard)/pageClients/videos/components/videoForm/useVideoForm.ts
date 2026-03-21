@@ -380,11 +380,13 @@ export const useVideoForm = ({
             error: ''
         })
 
-        const task = uploadVideoAsset({
+        let task: VideoAssetUploadTask | null = null
+
+        task = uploadVideoAsset({
             file,
             assetType,
             onProgress: (snapshot) => {
-                if (uploadTasksRef.current[kind] !== task) {
+                if (task && uploadTasksRef.current[kind] && uploadTasksRef.current[kind] !== task) {
                     return
                 }
 
@@ -399,7 +401,7 @@ export const useVideoForm = ({
                 }))
             },
             onStatusChange: (status) => {
-                if (uploadTasksRef.current[kind] !== task) {
+                if (task && uploadTasksRef.current[kind] && uploadTasksRef.current[kind] !== task) {
                     return
                 }
 
@@ -425,7 +427,7 @@ export const useVideoForm = ({
 
         task.promise
             .then((uploadedAsset) => {
-                if (uploadTasksRef.current[kind] !== task) {
+                if (!task || uploadTasksRef.current[kind] !== task) {
                     return
                 }
 
@@ -440,7 +442,7 @@ export const useVideoForm = ({
                 })
             })
             .catch((error) => {
-                if (uploadTasksRef.current[kind] !== task) {
+                if (!task || uploadTasksRef.current[kind] !== task) {
                     return
                 }
 
@@ -460,7 +462,7 @@ export const useVideoForm = ({
                 }))
             })
             .finally(() => {
-                if (uploadTasksRef.current[kind] === task) {
+                if (task && uploadTasksRef.current[kind] === task) {
                     uploadTasksRef.current[kind] = null
                 }
             })
