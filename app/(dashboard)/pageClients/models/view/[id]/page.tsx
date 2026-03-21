@@ -1,5 +1,7 @@
 import GetModelById from '@/database/actions/models/GetModelById'
 import { Avatar, Box, Typography } from '@mui/material'
+import { HugeiconsIcon } from '@hugeicons/react'
+import { Album01Icon, Film01Icon, ViewIcon } from '@hugeicons-pro/core-solid-rounded'
 import Image from 'next/image'
 import Link from 'next/link'
 
@@ -19,6 +21,26 @@ const Page = async ({ params, searchParams }: PageProps) => {
 
     const { model, stats, videos, galeries } = await GetModelById(id)
     const isVideos = tab === 'videos'
+    const metricCards = [
+        {
+            label: 'Videos',
+            value: (stats as any).totalVideos,
+            icon: Film01Icon,
+            strokeWidth: 0
+        },
+        {
+            label: 'Galerias',
+            value: (stats as any).totalGaleries,
+            icon: Album01Icon,
+            strokeWidth: 0
+        },
+        {
+            label: 'Views',
+            value: (stats as any).totalViews?.toLocaleString(),
+            icon: ViewIcon,
+            strokeWidth: 0
+        }
+    ]
 
     return (
         <ContainerPage
@@ -57,19 +79,29 @@ const Page = async ({ params, searchParams }: PageProps) => {
                             Perfil editorial con acceso centralizado a activos audiovisuales y galerias asociadas.
                         </Typography>
 
-                        <div className="mt-6 grid gap-3">
-                            <div className="rounded-[22px] border border-[var(--border)] bg-white/[0.02] p-4">
-                                <p className="text-xs uppercase tracking-[0.18em] text-[var(--muted-foreground)]">Videos</p>
-                                <p className="mt-2 text-2xl font-semibold text-white">{(stats as any).totalVideos}</p>
-                            </div>
-                            <div className="rounded-[22px] border border-[var(--border)] bg-white/[0.02] p-4">
-                                <p className="text-xs uppercase tracking-[0.18em] text-[var(--muted-foreground)]">Galerias</p>
-                                <p className="mt-2 text-2xl font-semibold text-white">{(stats as any).totalGaleries}</p>
-                            </div>
-                            <div className="rounded-[22px] border border-[var(--border)] bg-white/[0.02] p-4">
-                                <p className="text-xs uppercase tracking-[0.18em] text-[var(--muted-foreground)]">Views</p>
-                                <p className="mt-2 text-2xl font-semibold text-white">{(stats as any).totalViews?.toLocaleString()}</p>
-                            </div>
+                        <div className="mt-6 gap-3 flex">
+                            {metricCards.map((metric) => (
+                                <div
+                                    key={metric.label}
+                                    style={{ alignItems: 'center', gap: 4 }}
+                                    className='flex '
+                                >
+                                    <div
+                                        className="flex h-10 w-10 items-center justify-center rounded-[12px]   text-[var(--primary)]"
+                                    >
+                                        <HugeiconsIcon
+                                            icon={metric.icon}
+                                            size={20}
+                                            color="currentColor"
+                                            strokeWidth={metric.strokeWidth}
+                                        />
+                                    </div>
+
+                                    <div className="min-w-0">
+                                        <p className="mt-1 text-md  text-white">{metric.value}</p>
+                                    </div>
+                                </div>
+                            ))}
                         </div>
                     </div>
                 </section>

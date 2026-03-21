@@ -11,9 +11,10 @@ interface Props {
 
 const VideoCardPreview = ({ preview }: Props) => {
     const primaryModel = preview.selectedModels[0]
+    const extraModels = Math.max(preview.selectedModels.length - 1, 0)
 
     return (
-        <div className="overflow-hidden rounded-[16px] border border-[var(--border)] bg-[rgba(23,27,34,0.9)] shadow-[0_14px_32px_rgba(0,0,0,0.18)]">
+        <div className="overflow-hidden rounded-[14px] border border-[var(--border)] bg-[rgba(23,27,34,0.92)] shadow-[0_14px_32px_rgba(0,0,0,0.18)]">
             <div className="relative overflow-hidden border-b border-[var(--border)] bg-[rgba(255,255,255,0.02)]">
                 <div className="relative h-0 w-full pb-[56.25%]">
                     {preview.activeCoverUrl ? (
@@ -51,7 +52,7 @@ const VideoCardPreview = ({ preview }: Props) => {
                     </span>
                 </div>
 
-                <p className="line-clamp-2 text-[15px] font-semibold leading-5 text-white">
+                <p className="truncate text-[15px] font-semibold leading-5 text-white">
                     {preview.title || 'Nuevo video sin titulo'}
                 </p>
 
@@ -63,6 +64,11 @@ const VideoCardPreview = ({ preview }: Props) => {
                             className="h-7 w-7 rounded-full object-cover"
                         />
                         <span className="truncate">{primaryModel.name}</span>
+                        {extraModels > 0 && (
+                            <span className="rounded-md border border-white/8 bg-white/[0.03] px-2 py-1 text-[11px] text-zinc-300">
+                                +{extraModels}
+                            </span>
+                        )}
                     </div>
                 )}
 

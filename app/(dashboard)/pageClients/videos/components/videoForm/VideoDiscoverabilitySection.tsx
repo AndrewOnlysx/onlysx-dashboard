@@ -6,18 +6,18 @@ interface Props {
 
 const VideoDiscoverabilitySection = ({ discoverability }: Props) => {
     return (
-        <section className="surface-panel p-6">
-            <div className="mb-6 flex items-center justify-between gap-4">
-                <div>
-                    <h2 className="text-xl font-semibold">Discoverability y metricas</h2>
-                    <p className="mt-1 text-sm text-zinc-400">Controla keywords manuales y campos heredados como views o lastViews.</p>
+        <section className="surface-panel p-5 sm:p-6">
+            <div className="mb-5 flex items-start justify-between gap-4">
+                <div className="space-y-1">
+                    <h2 className="text-lg font-semibold text-white">Discoverability y metricas</h2>
+                    <p className="text-sm text-zinc-400">Controla keywords manuales y campos heredados como views o lastViews.</p>
                 </div>
                 <div className="muted-pill">
                     Paso 4
                 </div>
             </div>
 
-            <div className="grid gap-5 md:grid-cols-2">
+            <div className="grid gap-4 md:grid-cols-2">
                 <label className="space-y-2">
                     <span className="text-sm font-medium text-zinc-200">Views iniciales</span>
                     <input
@@ -41,7 +41,7 @@ const VideoDiscoverabilitySection = ({ discoverability }: Props) => {
 
                 <label className="space-y-2 md:col-span-2">
                     <span className="text-sm font-medium text-zinc-200">Keywords manuales</span>
-                    <div className="flex flex-col gap-3 rounded-[24px] border border-white/10 bg-black/20 p-4">
+                    <div className="flex flex-col gap-3 rounded-[16px] border border-white/8 bg-black/20 p-4">
                         <div className="flex flex-col gap-3 sm:flex-row">
                             <input
                                 value={discoverability.keywordInput}

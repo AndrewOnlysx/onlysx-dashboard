@@ -109,7 +109,7 @@ export const theme = createTheme({
             styleOverrides: {
                 body: {
                     backgroundColor: BACKGROUND,
-                    backgroundImage: 'linear-gradient(180deg, rgba(255,255,255,0.02) 0%, rgba(255,255,255,0) 100%)',
+                    //   backgroundImage: 'linear-gradient(180deg, rgba(255,255,255,0.02) 0%, rgba(255,255,255,0) 100%)',
                     color: TEXTPRIMARY,
                 },
                 '*::-webkit-scrollbar': {

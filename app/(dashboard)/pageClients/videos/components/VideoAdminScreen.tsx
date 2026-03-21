@@ -108,7 +108,7 @@ const VideoAdminScreen = ({ videos, summary, qualities }: Props) => {
 
     return (
         <div className="space-y-8 text-white">
-            <section className="surface-panel surface-panel--hero overflow-hidden p-6 sm:p-8">
+            <section className="overflow-hidden rounded-[24px] border border-white/8 bg-[rgba(15,18,24,0.96)] p-6 shadow-[0_18px_48px_rgba(0,0,0,0.22)] sm:p-8">
                 <div className="flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
                     <div className="max-w-3xl space-y-3">
                         <span className="page-shell__eyebrow">
@@ -142,7 +142,7 @@ const VideoAdminScreen = ({ videos, summary, qualities }: Props) => {
                 {statCards.map((card) => (
                     <article
                         key={card.label}
-                        className="surface-metric p-5"
+                        className="rounded-[18px] border border-white/8 bg-[rgba(18,21,27,0.94)] p-5 shadow-[0_12px_28px_rgba(0,0,0,0.18)]"
                     >
                         <p className="text-xs uppercase tracking-[0.24em] text-zinc-500">{card.label}</p>
                         <p className="mt-4 text-3xl font-semibold">{card.value}</p>
@@ -151,7 +151,7 @@ const VideoAdminScreen = ({ videos, summary, qualities }: Props) => {
                 ))}
             </section>
 
-            <section className="surface-panel p-5">
+            <section className="rounded-[20px] border border-white/8 bg-[rgba(18,21,27,0.94)] p-5 shadow-[0_12px_28px_rgba(0,0,0,0.18)]">
                 <div className="grid gap-4 xl:grid-cols-[minmax(0,1.6fr)_220px_220px]">
                     <label className="space-y-2">
                         <span className="text-xs uppercase tracking-[0.24em] text-zinc-500">Buscar</span>
@@ -195,105 +195,105 @@ const VideoAdminScreen = ({ videos, summary, qualities }: Props) => {
                 </div>
             </section>
 
-            <section className="grid gap-5 lg:grid-cols-2 2xl:grid-cols-3">
+            <section className="grid gap-4 lg:grid-cols-2 2xl:grid-cols-3">
                 {filteredVideos.map((video) => {
                     const models = getModels(video)
                     const tags = getTags(video)
                     const galeries = getGaleries(video)
+                    const visibleModels = models.slice(0, 3)
+                    const hiddenModelsCount = Math.max(0, models.length - visibleModels.length)
 
                     return (
                         <Link
                             key={video._id}
                             href={`/pageClients/videos/edit/${video._id}`}
-                            className="interactive-card group block overflow-hidden"
+                            className="group block overflow-hidden rounded-[18px] border border-white/8 bg-[rgba(18,21,27,0.94)] shadow-[0_12px_28px_rgba(0,0,0,0.16)] transition-[transform,border-color,box-shadow,background-color] duration-200 hover:-translate-y-[1px] hover:border-[rgba(255,80,164,0.18)] hover:bg-[rgba(20,23,29,0.98)] hover:shadow-[0_16px_32px_rgba(0,0,0,0.22)]"
                         >
-                            <div className="relative aspect-video overflow-hidden bg-zinc-900">
+                            <div className="relative aspect-video overflow-hidden border-b border-white/8 bg-[rgba(255,255,255,0.02)]">
                                 <img
                                     src={video.image}
                                     alt={video.title}
-                                    className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
+                                    className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.015]"
                                 />
 
-                                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/10 to-transparent" />
-
-                                <div className="absolute left-4 top-4 flex flex-wrap gap-2">
-                                    <span className="rounded-full bg-black/70 px-3 py-1 text-xs font-medium text-white backdrop-blur">
+                                <div className="absolute left-3 top-3 flex flex-wrap gap-2">
+                                    <span className="rounded-md border border-white/10 bg-[rgba(15,18,24,0.82)] px-2 py-1 text-[11px] font-medium text-white backdrop-blur-sm">
                                         {video.quality}
                                     </span>
-                                    <span className="muted-pill border-0 font-medium normal-case tracking-normal text-zinc-100 backdrop-blur">
+                                    <span className="rounded-md border border-white/10 bg-[rgba(15,18,24,0.82)] px-2 py-1 text-[11px] font-medium text-white backdrop-blur-sm">
                                         {video.time}
                                     </span>
                                 </div>
 
-                                <div className="absolute bottom-4 left-4 right-4 flex items-end justify-between gap-4">
-                                    <div className="space-y-1">
-                                        <p className="text-xs uppercase tracking-[0.24em] text-zinc-300">Actualizado</p>
-                                        <p className="text-sm font-medium text-white">
-                                            {dayjs(video.updatedAt).fromNow()}
-                                        </p>
-                                    </div>
-                                    <div className="rounded-2xl border border-white/15 bg-black/45 px-3 py-2 text-right backdrop-blur">
-                                        <p className="text-[11px] uppercase tracking-[0.24em] text-zinc-400">Views</p>
-                                        <p className="text-sm font-semibold text-white">
-                                            {formatCompactNumber(video.views ?? 0)}
-                                        </p>
-                                    </div>
+                                <div className="absolute bottom-3 right-3 rounded-md border border-white/10 bg-[rgba(15,18,24,0.82)] px-2 py-1 text-[11px] font-medium text-white backdrop-blur-sm">
+                                    {formatCompactNumber(video.views ?? 0)} views
                                 </div>
                             </div>
 
-                            <div className="space-y-5 p-5">
+                            <div className="flex flex-col gap-4 p-4">
                                 <div className="space-y-2">
-                                    <h2 className="line-clamp-2 text-xl font-semibold tracking-tight">
+                                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px] text-zinc-400">
+                                        <span>{dayjs(video.updatedAt).fromNow()}</span>
+                                        <span className="h-1 w-1 rounded-full bg-white/20" aria-hidden="true" />
+                                        <span>{video.dump ? 'Dump listo' : 'Sin dump'}</span>
+                                        <span className="h-1 w-1 rounded-full bg-white/20" aria-hidden="true" />
+                                        <span>{galeries.length > 0 ? `${galeries.length} galerias` : 'Sin galerias'}</span>
+                                    </div>
+
+                                    <h2 className="truncate text-[17px] font-semibold leading-6 tracking-[-0.02em] text-white">
                                         {video.title}
                                     </h2>
-                                    <p className="line-clamp-2 text-sm text-zinc-400">
-                                        {video.searchPrarms?.slice(0, 8).join(' • ') || 'Sin keywords generadas'}
-                                    </p>
                                 </div>
 
-                                <div className="grid gap-3 rounded-[24px] border border-white/8 bg-white/[0.03] p-4 sm:grid-cols-3">
-                                    <div>
-                                        <p className="text-[11px] uppercase tracking-[0.24em] text-zinc-500">Modelos</p>
-                                        <p className="mt-2 text-sm text-zinc-100">{models.length}</p>
-                                    </div>
-                                    <div>
-                                        <p className="text-[11px] uppercase tracking-[0.24em] text-zinc-500">Tags</p>
-                                        <p className="mt-2 text-sm text-zinc-100">{tags.length}</p>
-                                    </div>
-                                    <div>
-                                        <p className="text-[11px] uppercase tracking-[0.24em] text-zinc-500">Galerias</p>
-                                        <p className="mt-2 text-sm text-zinc-100">{galeries.length}</p>
-                                    </div>
-                                </div>
-
-                                <div className="space-y-3">
-                                    <div className="flex flex-wrap gap-2">
-                                        {models.slice(0, 3).map((model) => (
-                                            <span
+                                {visibleModels.length > 0 && (
+                                    <div className="flex flex-wrap items-center gap-2">
+                                        {visibleModels.map((model) => (
+                                            <div
                                                 key={model._id}
-                                                className="accent-pill normal-case tracking-normal text-xs"
+                                                className="flex items-center gap-2 rounded-md border border-white/8 bg-white/[0.02] px-2 py-1.5 text-[12px] text-zinc-300"
                                             >
-                                                <span className="h-2 w-2 rounded-full bg-[var(--primary)]" />
-                                                {model.name}
-                                            </span>
+                                                <img
+                                                    src={model.image}
+                                                    alt={model.name}
+                                                    className="h-5 w-5 rounded-full object-cover"
+                                                />
+                                                <span className="max-w-[92px] truncate">{model.name}</span>
+                                            </div>
                                         ))}
-                                    </div>
 
-                                    <div className="flex flex-wrap gap-2">
-                                        {tags.slice(0, 4).map((tag) => (
-                                            <span
-                                                key={tag._id}
-                                                className="muted-pill normal-case tracking-normal text-xs"
-                                            >
-                                                #{tag.name}
+                                        {hiddenModelsCount > 0 && (
+                                            <span className="rounded-md border border-white/8 bg-transparent px-2 py-1.5 text-[12px] text-zinc-400">
+                                                +{hiddenModelsCount}
                                             </span>
-                                        ))}
+                                        )}
+                                    </div>
+                                )}
+
+                                <div className="grid grid-cols-3 gap-0 overflow-hidden rounded-[12px] border border-white/8 bg-white/[0.02]">
+                                    <div className="px-3 py-2.5">
+                                        <p className="text-[11px] text-zinc-500">Modelos</p>
+                                        <p className="mt-1 text-sm font-medium text-zinc-100">{models.length}</p>
+                                    </div>
+                                    <div className="border-x border-white/8 px-3 py-2.5">
+                                        <p className="text-[11px] text-zinc-500">Tags</p>
+                                        <p className="mt-1 text-sm font-medium text-zinc-100">{tags.length}</p>
+                                    </div>
+                                    <div className="px-3 py-2.5">
+                                        <p className="text-[11px] text-zinc-500">Galerias</p>
+                                        <p className="mt-1 text-sm font-medium text-zinc-100">{galeries.length}</p>
                                     </div>
                                 </div>
 
-                                <div className="flex items-center justify-between border-t border-white/8 pt-4 text-sm text-zinc-400">
-                                    <span>{video.dump ? 'Dump listo' : 'Sin dump'}</span>
-                                    <span>{galeries.length > 0 ? `${galeries.length} galerias enlazadas` : 'Sin galerias enlazadas'}</span>
+
+                                <div className="flex flex-wrap gap-1.5 border-t border-white/8 pt-3">
+                                    {tags.slice(0, 4).map((tag) => (
+                                        <span
+                                            key={tag._id}
+                                            className="rounded-md border border-white/8 bg-transparent px-2 py-1 text-[11px] text-zinc-400"
+                                        >
+                                            #{tag.name}
+                                        </span>
+                                    ))}
                                 </div>
                             </div>
                         </Link>

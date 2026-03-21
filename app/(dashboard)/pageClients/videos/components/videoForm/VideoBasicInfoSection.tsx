@@ -6,18 +6,18 @@ interface Props {
 
 const VideoBasicInfoSection = ({ basicInfo }: Props) => {
     return (
-        <section className="surface-panel p-6">
-            <div className="mb-6 flex items-center justify-between gap-4">
-                <div>
-                    <h2 className="text-xl font-semibold">Informacion base</h2>
-                    <p className="mt-1 text-sm text-zinc-400">Titulo, duracion y calidad visible en cards y vistas internas.</p>
+        <section className="surface-panel p-5 sm:p-6">
+            <div className="mb-5 flex items-start justify-between gap-4">
+                <div className="space-y-1">
+                    <h2 className="text-lg font-semibold text-white">Informacion base</h2>
+                    <p className="text-sm text-zinc-400">Titulo, duracion y calidad visible en cards y vistas internas.</p>
                 </div>
                 <div className="muted-pill">
                     Paso 1
                 </div>
             </div>
 
-            <div className="grid gap-5 md:grid-cols-2">
+            <div className="grid gap-4 md:grid-cols-2">
                 <label className="space-y-2 md:col-span-2">
                     <span className="text-sm font-medium text-zinc-200">Titulo</span>
                     <input
@@ -42,7 +42,7 @@ const VideoBasicInfoSection = ({ basicInfo }: Props) => {
 
                 <div className="space-y-2">
                     <span className="text-sm font-medium text-zinc-200">Calidad</span>
-                    <div className="grid gap-3 sm:grid-cols-[180px_minmax(0,1fr)]">
+                    <div className="grid gap-3 sm:grid-cols-[170px_minmax(0,1fr)]">
                         <select
                             value={basicInfo.qualityPreset}
                             onChange={(event) => basicInfo.setQualityPreset(event.target.value as typeof basicInfo.qualityPreset)}

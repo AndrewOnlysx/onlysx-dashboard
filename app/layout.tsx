@@ -98,7 +98,7 @@ const NAVIGATION: Navigation = [
 ];
 
 const BRANDING = {
-  title: 'ONLYSX Dashboard',
+  title: '',
   logo: <img src='/assets/logo.svg' />,
 };
 

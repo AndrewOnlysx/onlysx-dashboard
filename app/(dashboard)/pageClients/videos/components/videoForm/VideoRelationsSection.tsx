@@ -10,18 +10,18 @@ interface Props {
 
 const VideoRelationsSection = ({ relations }: Props) => {
     return (
-        <section className="surface-panel p-6">
-            <div className="mb-6 flex items-center justify-between gap-4">
-                <div>
-                    <h2 className="text-xl font-semibold">Relacion editorial</h2>
-                    <p className="mt-1 text-sm text-zinc-400">Asocia el video con modelos, tags y galerias para ordenar el catalogo.</p>
+        <section className="surface-panel p-5 sm:p-6">
+            <div className="mb-5 flex items-start justify-between gap-4">
+                <div className="space-y-1">
+                    <h2 className="text-lg font-semibold text-white">Relacion editorial</h2>
+                    <p className="text-sm text-zinc-400">Asocia el video con modelos, tags y galerias para ordenar el catalogo.</p>
                 </div>
                 <div className="muted-pill">
                     Paso 3
                 </div>
             </div>
 
-            <div className="grid gap-5">
+            <div className="grid gap-4">
                 <label className="space-y-2">
                     <span className="text-sm font-medium text-zinc-200">Modelos</span>
                     <SelectModel
