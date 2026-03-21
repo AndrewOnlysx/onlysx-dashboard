@@ -25,7 +25,7 @@ interface DirectUploadRequestBody {
     parts?: Array<{ ETag: string; PartNumber: number }>
 }
 
-const SINGLE_PUT_MAX_BYTES = 5 * 1024 * 1024 * 1024
+const MULTIPART_UPLOAD_THRESHOLD_BYTES = 128 * 1024 * 1024
 const MULTIPART_PART_SIZE_BYTES = 64 * 1024 * 1024
 
 const normalizeSegment = (value: string) =>
@@ -128,7 +128,7 @@ export async function POST(req: Request) {
 
             const uploadFolder = resolveUploadFolder(body.folder ?? null, assetType)
 
-            if (assetType === "video" && size > SINGLE_PUT_MAX_BYTES) {
+            if (assetType === "video" && size > MULTIPART_UPLOAD_THRESHOLD_BYTES) {
                 const initResult = await CreateMultipartUploadTarget({
                     filename,
                     contentType: fileType,

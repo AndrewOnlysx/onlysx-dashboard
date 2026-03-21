@@ -67,6 +67,9 @@ export const useVideoForm = ({
         manualCover: null,
         generatedCover: null
     })
+    const manualCoverUrlRef = useRef('')
+    const generatedCoverUrlRef = useRef('')
+    const videoPreviewUrlRef = useRef('')
     const videoSelectionRef = useRef(0)
     const initialStateRef = useRef(
         createVideoFormInitialState({
@@ -243,12 +246,24 @@ export const useVideoForm = ({
     const completedChecklist = checklist.filter((item) => item.done).length
 
     useEffect(() => {
+        manualCoverUrlRef.current = manualCoverUrl
+    }, [manualCoverUrl])
+
+    useEffect(() => {
+        generatedCoverUrlRef.current = generatedCoverUrl
+    }, [generatedCoverUrl])
+
+    useEffect(() => {
+        videoPreviewUrlRef.current = videoPreviewUrl
+    }, [videoPreviewUrl])
+
+    useEffect(() => {
         return () => {
-            revokeObjectUrl(manualCoverUrl)
-            revokeObjectUrl(generatedCoverUrl)
-            revokeObjectUrl(videoPreviewUrl)
+            revokeObjectUrl(manualCoverUrlRef.current)
+            revokeObjectUrl(generatedCoverUrlRef.current)
+            revokeObjectUrl(videoPreviewUrlRef.current)
         }
-    }, [generatedCoverUrl, manualCoverUrl, videoPreviewUrl])
+    }, [])
 
     useEffect(() => {
         const uploadTasks = uploadTasksRef.current
