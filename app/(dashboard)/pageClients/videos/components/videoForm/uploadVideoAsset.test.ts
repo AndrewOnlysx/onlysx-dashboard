@@ -30,30 +30,28 @@ class MockXMLHttpRequest {
         return undefined
     }
 
-    send() {
+    setRequestHeader() {
+        return undefined
+    }
+
+    getResponseHeader(name: string) {
+        return name === 'ETag' ? '"etag-123"' : null
+    }
+
+    send(body?: Document | XMLHttpRequestBodyInit | null) {
         queueMicrotask(() => {
-            const total = 4096
+            const total = body instanceof Blob ? body.size : 4096
 
             this.uploadListeners.get('loadstart')?.({ loaded: 0, total })
-            this.uploadListeners.get('progress')?.({ loaded: 2048, total })
+            this.uploadListeners.get('progress')?.({ loaded: total / 2, total })
             this.uploadListeners.get('load')?.({ loaded: total, total })
 
             this.readyState = MockXMLHttpRequest.DONE
             this.status = 200
             this.onreadystatechange?.()
 
-            this.response = {
-                ok: true,
-                data: {
-                    assetType: 'video',
-                    filename: 'video.mp4',
-                    size: total,
-                    type: 'video/mp4',
-                    url: 'https://cdn.test/video.mp4',
-                    key: 'page-content/test/video.mp4'
-                }
-            }
-            this.responseText = JSON.stringify(this.response)
+            this.response = ''
+            this.responseText = ''
             this.onload?.()
         })
     }
@@ -70,6 +68,27 @@ describe('uploadVideoAsset', () => {
 
     it('espera la respuesta final del servidor antes de exponer la URL remota', async () => {
         vi.stubGlobal('XMLHttpRequest', MockXMLHttpRequest)
+        vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+            ok: true,
+            status: 200,
+            json: async () => ({
+                ok: true,
+                data: {
+                    strategy: 'single',
+                    assetType: 'video',
+                    filename: 'video.mp4',
+                    size: 4096,
+                    type: 'video/mp4',
+                    url: 'https://cdn.test/video.mp4',
+                    key: 'page-content/test/video.mp4',
+                    uploadUrl: 'https://r2.test/upload/video.mp4',
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'video/mp4'
+                    }
+                }
+            })
+        }))
 
         const file = await createUniqueVideoFixture()
         const statusChanges: string[] = []

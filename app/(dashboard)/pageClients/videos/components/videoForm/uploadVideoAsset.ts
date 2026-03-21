@@ -19,6 +19,26 @@ export interface UploadedVideoAsset {
     key: string
 }
 
+interface DirectSingleUploadDescriptor extends UploadedVideoAsset {
+    strategy: 'single'
+    uploadUrl: string
+    method: 'PUT'
+    headers?: Record<string, string>
+}
+
+interface DirectMultipartUploadDescriptor extends UploadedVideoAsset {
+    strategy: 'multipart'
+    uploadId: string
+    partSize: number
+    method: 'PUT'
+    parts: Array<{
+        partNumber: number
+        uploadUrl: string
+    }>
+}
+
+type UploadDescriptor = DirectSingleUploadDescriptor | DirectMultipartUploadDescriptor
+
 interface UploadVideoAssetOptions {
     file: File
     assetType: VideoAssetType
@@ -46,10 +66,60 @@ const isUploadedVideoAsset = (payload: unknown): payload is { ok: true; data: Up
     return Boolean(
         data &&
         typeof data === 'object' &&
+        'assetType' in data &&
+        (data.assetType === 'video' || data.assetType === 'cover') &&
+        'filename' in data &&
+        typeof data.filename === 'string' &&
+        'size' in data &&
+        typeof data.size === 'number' &&
+        'type' in data &&
+        typeof data.type === 'string' &&
         'url' in data &&
         typeof data.url === 'string' &&
-        data.url.trim()
+        data.url.trim() &&
+        'key' in data &&
+        typeof data.key === 'string'
     )
+}
+
+const isUploadDescriptor = (payload: unknown): payload is { ok: true; data: UploadDescriptor } => {
+    if (!isUploadedVideoAsset(payload)) {
+        return false
+    }
+
+    const { data } = payload
+
+    if (data.strategy === 'single') {
+        return Boolean(
+            'uploadUrl' in data &&
+            typeof data.uploadUrl === 'string' &&
+            data.uploadUrl.trim() &&
+            'method' in data &&
+            data.method === 'PUT'
+        )
+    }
+
+    if (data.strategy === 'multipart') {
+        return Boolean(
+            'uploadId' in data &&
+            typeof data.uploadId === 'string' &&
+            data.uploadId.trim() &&
+            'partSize' in data &&
+            typeof data.partSize === 'number' &&
+            Array.isArray(data.parts) &&
+            data.parts.every((part) => (
+                part &&
+                typeof part === 'object' &&
+                'partNumber' in part &&
+                typeof part.partNumber === 'number' &&
+                'uploadUrl' in part &&
+                typeof part.uploadUrl === 'string' &&
+                part.uploadUrl.trim()
+            ))
+        )
+    }
+
+    return false
 }
 
 const getErrorMessage = (payload: unknown, status?: number) => {
@@ -69,6 +139,19 @@ const getErrorMessage = (payload: unknown, status?: number) => {
     return 'No se pudo completar la subida.'
 }
 
+const createSnapshot = ({
+    uploadedBytes,
+    totalBytes,
+}: {
+    uploadedBytes: number
+    totalBytes: number
+}): UploadProgressSnapshot => ({
+    progress: totalBytes > 0 ? Math.min(100, Math.round((uploadedBytes / totalBytes) * 100)) : 0,
+    uploadedBytes,
+    totalBytes,
+    remainingBytes: Math.max(0, totalBytes - uploadedBytes)
+})
+
 export const uploadVideoAsset = ({
     file,
     assetType,
@@ -76,151 +159,241 @@ export const uploadVideoAsset = ({
     onProgress,
     onStatusChange
 }: UploadVideoAssetOptions): VideoAssetUploadTask => {
-    const xhr = new XMLHttpRequest()
+    let activeRequest: XMLHttpRequest | null = null
+    let activeMultipartContext: { key: string; uploadId: string } | null = null
+    let rejectedByAbort = false
+    let rejectPromise: ((reason?: unknown) => void) | null = null
 
-    const promise = new Promise<UploadedVideoAsset>((resolve, reject) => {
-        let settled = false
-
-        const safeParsePayload = () => {
-            if (xhr.response && typeof xhr.response === 'object') {
-                return xhr.response
-            }
-
-            if (typeof xhr.response === 'string' && xhr.response.trim()) {
-                try {
-                    return JSON.parse(xhr.response)
-                } catch {
-                    return null
-                }
-            }
-
-            if (xhr.responseType !== '' && xhr.responseType !== 'text') {
-                return null
-            }
-
-            let responseText = ''
-
-            try {
-                responseText = xhr.responseText
-            } catch {
-                return null
-            }
-
-            if (!responseText) {
-                return null
-            }
-
-            try {
-                return JSON.parse(responseText)
-            } catch {
-                return null
-            }
+    const abortMultipart = () => {
+        if (!activeMultipartContext) {
+            return
         }
 
-        const settleSuccess = (payload: unknown) => {
-            if (settled) {
-                return
-            }
+        void fetch('/api/videos/uploadFiles', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                action: 'abortMultipart',
+                key: activeMultipartContext.key,
+                uploadId: activeMultipartContext.uploadId,
+            })
+        })
+    }
 
-            settled = true
-            onStatusChange?.('success')
-            resolve((payload as { data: UploadedVideoAsset }).data)
-        }
+    const uploadChunk = ({
+        uploadUrl,
+        blob,
+        headers,
+        uploadedBytesBefore = 0,
+    }: {
+        uploadUrl: string
+        blob: Blob
+        headers?: Record<string, string>
+        uploadedBytesBefore?: number
+    }) => new Promise<{ etag?: string }>((resolve, reject) => {
+        const xhr = new XMLHttpRequest()
+        activeRequest = xhr
 
-        const settleError = (payload?: unknown) => {
-            if (settled) {
-                return
-            }
+        xhr.open('PUT', uploadUrl)
+        xhr.responseType = 'text'
 
-            settled = true
-            onStatusChange?.('error')
-            reject(new Error(getErrorMessage(payload, xhr.status)))
-        }
-
-        xhr.open('POST', '/api/videos/uploadFiles')
-        xhr.responseType = 'json'
+        Object.entries(headers ?? {}).forEach(([header, value]) => {
+            xhr.setRequestHeader(header, value)
+        })
 
         xhr.upload.addEventListener('loadstart', () => {
             onStatusChange?.('uploading')
-            onProgress?.({
-                progress: 0,
-                uploadedBytes: 0,
+            onProgress?.(createSnapshot({
+                uploadedBytes: uploadedBytesBefore,
                 totalBytes: file.size,
-                remainingBytes: file.size
-            })
+            }))
         })
 
         xhr.upload.addEventListener('progress', (event) => {
-            const totalBytes = event.total || file.size || 0
-            const uploadedBytes = event.loaded
-            const progress = totalBytes > 0
-                ? Math.min(100, Math.round((uploadedBytes / totalBytes) * 100))
-                : 0
-
+            const uploadedBytes = Math.min(file.size, uploadedBytesBefore + event.loaded)
             onStatusChange?.('uploading')
-            onProgress?.({
-                progress,
+            onProgress?.(createSnapshot({
                 uploadedBytes,
-                totalBytes,
-                remainingBytes: Math.max(0, totalBytes - uploadedBytes)
-            })
-        })
-
-        xhr.upload.addEventListener('load', () => {
-            onStatusChange?.('processing')
-            onProgress?.({
-                progress: 100,
-                uploadedBytes: file.size,
                 totalBytes: file.size,
-                remainingBytes: 0
-            })
+            }))
         })
 
-        const finalizeRequest = ({
-            allowPendingPayload = false
-        }: {
-            allowPendingPayload?: boolean
-        } = {}) => {
-            if (xhr.readyState !== XMLHttpRequest.DONE || settled) {
+        xhr.onload = () => {
+            activeRequest = null
+
+            if (xhr.status < 200 || xhr.status >= 300) {
+                reject(new Error(getErrorMessage(null, xhr.status)))
                 return
             }
 
-            const payload = safeParsePayload()
-
-            if (allowPendingPayload && xhr.status >= 200 && xhr.status < 300 && payload === null) {
-                return
-            }
-
-            if (xhr.status < 200 || xhr.status >= 300 || !isUploadedVideoAsset(payload)) {
-                settleError(payload)
-                return
-            }
-
-            settleSuccess(payload)
+            const etag = xhr.getResponseHeader('ETag')?.replaceAll('"', '')
+            resolve({ etag: etag || undefined })
         }
 
-        xhr.onload = () => finalizeRequest()
-        xhr.onreadystatechange = () => finalizeRequest({ allowPendingPayload: true })
-
         xhr.onerror = () => {
-            settleError({ message: 'No se pudo completar la subida.' })
+            activeRequest = null
+            reject(new Error('No se pudo completar la subida.'))
         }
 
         xhr.onabort = () => {
-            settled = true
+            activeRequest = null
             reject(new DOMException('Upload aborted', 'AbortError'))
         }
 
-        const formData = new FormData()
-        formData.append('file', file)
-        formData.append('assetType', assetType)
-        formData.append('folder', folder)
+        xhr.send(blob)
+    })
 
-        xhr.send(formData)
+    const promise = new Promise<UploadedVideoAsset>(async (resolve, reject) => {
+        rejectPromise = reject
+
+        let descriptor: UploadDescriptor | null = null
+
+        try {
+            const response = await fetch('/api/videos/uploadFiles', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    filename: file.name,
+                    size: file.size,
+                    type: file.type,
+                    assetType,
+                    folder,
+                })
+            })
+
+            const payload = await response.json().catch(() => null)
+
+            if (!response.ok || !isUploadDescriptor(payload)) {
+                reject(new Error(getErrorMessage(payload, response.status)))
+                return
+            }
+
+            descriptor = payload.data
+
+            if (rejectedByAbort) {
+                reject(new DOMException('Upload aborted', 'AbortError'))
+                return
+            }
+
+            if (descriptor.strategy === 'single') {
+                await uploadChunk({
+                    uploadUrl: descriptor.uploadUrl,
+                    blob: file,
+                    headers: descriptor.headers,
+                })
+
+                onStatusChange?.('processing')
+                onProgress?.(createSnapshot({
+                    uploadedBytes: file.size,
+                    totalBytes: file.size,
+                }))
+                onStatusChange?.('success')
+                resolve(descriptor)
+                return
+            }
+
+            activeMultipartContext = {
+                key: descriptor.key,
+                uploadId: descriptor.uploadId,
+            }
+
+            const completedParts: Array<{ ETag: string; PartNumber: number }> = []
+            let uploadedBytesBefore = 0
+
+            for (const part of descriptor.parts) {
+                if (rejectedByAbort) {
+                    abortMultipart()
+                    reject(new DOMException('Upload aborted', 'AbortError'))
+                    return
+                }
+
+                const start = (part.partNumber - 1) * descriptor.partSize
+                const end = Math.min(start + descriptor.partSize, file.size)
+                const chunk = file.slice(start, end)
+                const { etag } = await uploadChunk({
+                    uploadUrl: part.uploadUrl,
+                    blob: chunk,
+                    uploadedBytesBefore,
+                })
+
+                uploadedBytesBefore += chunk.size
+                onProgress?.(createSnapshot({
+                    uploadedBytes: uploadedBytesBefore,
+                    totalBytes: file.size,
+                }))
+
+                if (!etag) {
+                    abortMultipart()
+                    reject(new Error('No se pudo confirmar una parte del multipart upload.'))
+                    return
+                }
+
+                completedParts.push({
+                    ETag: etag,
+                    PartNumber: part.partNumber,
+                })
+            }
+
+            onStatusChange?.('processing')
+
+            const completeResponse = await fetch('/api/videos/uploadFiles', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    action: 'completeMultipart',
+                    assetType,
+                    filename: descriptor.filename,
+                    size: descriptor.size,
+                    type: descriptor.type,
+                    key: descriptor.key,
+                    uploadId: descriptor.uploadId,
+                    parts: completedParts,
+                })
+            })
+
+            const completePayload = await completeResponse.json().catch(() => null)
+
+            if (!completeResponse.ok || !isUploadedVideoAsset(completePayload)) {
+                reject(new Error(getErrorMessage(completePayload, completeResponse.status)))
+                return
+            }
+
+            activeMultipartContext = null
+            onStatusChange?.('success')
+            resolve(completePayload.data)
+        } catch (error) {
+            if (descriptor?.strategy === 'multipart') {
+                abortMultipart()
+            }
+
+            if (error instanceof DOMException && error.name === 'AbortError') {
+                reject(error)
+                return
+            }
+
+            onStatusChange?.('error')
+            reject(error instanceof Error ? error : new Error('No se pudo completar la subida.'))
+        }
     })
 
     return {
-        abort: () => xhr.abort(),
+        abort: () => {
+            rejectedByAbort = true
+
+            if (activeRequest) {
+                activeRequest.abort()
+            } else if (rejectPromise) {
+                rejectPromise(new DOMException('Upload aborted', 'AbortError'))
+            }
+
+            abortMultipart()
+        },
         promise
     }
 }
