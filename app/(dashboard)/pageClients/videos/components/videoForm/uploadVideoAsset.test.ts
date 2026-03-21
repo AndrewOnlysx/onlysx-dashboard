@@ -111,4 +111,47 @@ describe('uploadVideoAsset', () => {
         expect(progressSnapshots).toEqual([0, 50, 100])
         expect(statusChanges).toEqual(['uploading', 'uploading', 'processing', 'success'])
     })
+
+    it('expone un error explicito cuando R2 bloquea la subida por CORS', async () => {
+        class CorsFailingXMLHttpRequest extends MockXMLHttpRequest {
+            override send() {
+                queueMicrotask(() => {
+                    this.onerror?.()
+                })
+            }
+        }
+
+        vi.stubGlobal('XMLHttpRequest', CorsFailingXMLHttpRequest)
+        vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+            ok: true,
+            status: 200,
+            json: async () => ({
+                ok: true,
+                data: {
+                    strategy: 'single',
+                    assetType: 'video',
+                    filename: 'video.mp4',
+                    size: 4096,
+                    type: 'video/mp4',
+                    url: 'https://cdn.test/video.mp4',
+                    key: 'page-content/test/video.mp4',
+                    uploadUrl: 'https://onlysx-content.example.r2.cloudflarestorage.com/page-content/test/video.mp4',
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'video/mp4'
+                    }
+                }
+            })
+        }))
+
+        const file = await createUniqueVideoFixture()
+        const task = uploadVideoAsset({
+            file,
+            assetType: 'video'
+        })
+
+        await expect(task.promise).rejects.toThrow(
+            'La URL firmada de R2 fue bloqueada por CORS. Debes permitir este origin en la configuracion del bucket.'
+        )
+    })
 })

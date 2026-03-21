@@ -145,6 +145,20 @@ const getErrorMessage = (payload: unknown, status?: number) => {
     return 'No se pudo completar la subida.'
 }
 
+const getTransportErrorMessage = (uploadUrl: string) => {
+    try {
+        const { hostname } = new URL(uploadUrl)
+
+        if (hostname.endsWith('.r2.cloudflarestorage.com')) {
+            return 'La URL firmada de R2 fue bloqueada por CORS. Debes permitir este origin en la configuracion del bucket.'
+        }
+    } catch {
+        return 'No se pudo completar la subida.'
+    }
+
+    return 'No se pudo completar la subida.'
+}
+
 const createSnapshot = ({
     uploadedBytes,
     totalBytes,
@@ -240,7 +254,7 @@ export const uploadVideoAsset = ({
 
         xhr.onerror = () => {
             activeRequest = null
-            reject(new Error('No se pudo completar la subida.'))
+            reject(new Error(getTransportErrorMessage(uploadUrl)))
         }
 
         xhr.onabort = () => {
