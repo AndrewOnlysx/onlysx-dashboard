@@ -87,7 +87,11 @@ const isUploadDescriptor = (payload: unknown): payload is { ok: true; data: Uplo
         return false
     }
 
-    const data = payload.data as Record<string, unknown>
+    const data = payload.data as unknown
+
+    if (!data || typeof data !== 'object' || !('strategy' in data)) {
+        return false
+    }
 
     if (data.strategy === 'single') {
         return Boolean(
