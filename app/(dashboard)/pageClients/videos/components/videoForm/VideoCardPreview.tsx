@@ -13,8 +13,8 @@ const VideoCardPreview = ({ preview }: Props) => {
     const primaryModel = preview.selectedModels[0]
 
     return (
-        <div className="rounded-[24px] border border-white/10 bg-zinc-950/85 p-3 shadow-[0_24px_70px_rgba(0,0,0,0.35)]">
-            <div className="relative overflow-hidden rounded-[18px] bg-zinc-900">
+        <div className="overflow-hidden rounded-[16px] border border-[var(--border)] bg-[rgba(23,27,34,0.9)] shadow-[0_14px_32px_rgba(0,0,0,0.18)]">
+            <div className="relative overflow-hidden border-b border-[var(--border)] bg-[rgba(255,255,255,0.02)]">
                 <div className="relative h-0 w-full pb-[56.25%]">
                     {preview.activeCoverUrl ? (
                         <img
@@ -23,7 +23,7 @@ const VideoCardPreview = ({ preview }: Props) => {
                             className="absolute inset-0 h-full w-full object-cover"
                         />
                     ) : (
-                        <div className="absolute inset-0 flex items-center justify-center bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.2),_transparent_45%),linear-gradient(180deg,_rgba(24,24,27,1),_rgba(9,9,11,1))] px-6 text-center text-sm text-zinc-500">
+                        <div className="absolute inset-0 flex items-center justify-center bg-[rgba(15,18,24,0.9)] px-6 text-center text-sm text-zinc-500">
                             La portada horizontal aparecera aqui.
                         </div>
                     )}
@@ -35,43 +35,44 @@ const VideoCardPreview = ({ preview }: Props) => {
                         />
                     )}
 
-                    <span className="absolute bottom-3 right-3 rounded bg-black/80 px-2 py-1 text-xs font-semibold text-white">
+                    <span className="absolute bottom-2 right-2 rounded-md border border-white/10 bg-[rgba(15,18,24,0.82)] px-2 py-1 text-[11px] font-medium tracking-[0.01em] text-white backdrop-blur-sm">
                         {preview.time || '00:00'}
                     </span>
                 </div>
             </div>
 
-            <div className="space-y-3 px-2 pb-2 pt-4">
+            <div className="flex flex-col gap-3 p-3.5">
                 <div className="flex items-start justify-between gap-3">
-                    <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] uppercase tracking-[0.24em] text-zinc-300">
+                    <span className="rounded-md border border-white/8 bg-white/[0.03] px-2 py-1 text-[11px] font-medium tracking-[0.01em] text-[var(--muted-foreground)]">
                         Card preview
                     </span>
-                    <span className="rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1 text-[11px] uppercase tracking-[0.2em] text-emerald-100">
+                    <span className="rounded-md border border-white/8 bg-white/[0.03] px-2 py-1 text-[11px] font-medium tracking-[0.01em] text-[var(--muted-foreground)]">
                         {preview.currentQuality || 'Sin calidad'}
                     </span>
                 </div>
 
-                <p className="line-clamp-2 text-base font-medium text-white">
+                <p className="line-clamp-2 text-[15px] font-semibold leading-5 text-white">
                     {preview.title || 'Nuevo video sin titulo'}
                 </p>
 
                 {primaryModel && (
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2.5 text-sm text-[var(--muted-foreground)]">
                         <img
                             src={primaryModel.image}
                             alt={primaryModel.name}
-                            className="h-8 w-8 rounded-full object-cover"
+                            className="h-7 w-7 rounded-full object-cover"
                         />
-                        <span className="text-sm text-zinc-300">{primaryModel.name}</span>
+                        <span className="truncate">{primaryModel.name}</span>
                     </div>
                 )}
 
-                <div className="flex items-center justify-between gap-3 text-xs text-zinc-400">
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px] text-[var(--muted-foreground)]">
                     <span>{formatCompactNumber(preview.views)} views</span>
+                    <span className="h-1 w-1 rounded-full bg-[rgba(255,255,255,0.18)]" aria-hidden="true" />
                     <span>{preview.previewWindows.length > 0 ? `${preview.previewWindows.length} snippets` : 'Sin dump'}</span>
                 </div>
 
-                <div className="flex flex-wrap gap-2">
+                <div className="mt-auto flex flex-wrap gap-1.5">
                     {preview.selectedTags.length === 0 && (
                         <span className="text-xs text-zinc-500">Sin tags todavia.</span>
                     )}
@@ -79,7 +80,7 @@ const VideoCardPreview = ({ preview }: Props) => {
                     {preview.selectedTags.slice(0, 3).map((tag) => (
                         <span
                             key={tag._id}
-                            className="rounded-full border border-sky-400/20 bg-sky-400/10 px-3 py-1 text-xs text-sky-100"
+                            className="rounded-md border border-white/8 bg-white/[0.02] px-2 py-1 text-[11px] text-[var(--muted-foreground)]"
                         >
                             #{tag.name}
                         </span>

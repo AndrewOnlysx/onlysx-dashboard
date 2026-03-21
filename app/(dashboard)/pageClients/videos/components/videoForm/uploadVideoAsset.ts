@@ -32,6 +32,26 @@ export interface VideoAssetUploadTask {
     promise: Promise<UploadedVideoAsset>
 }
 
+const isUploadedVideoAsset = (payload: unknown): payload is { ok: true; data: UploadedVideoAsset } => {
+    if (!payload || typeof payload !== 'object') {
+        return false
+    }
+
+    if (!('ok' in payload) || payload.ok !== true || !('data' in payload)) {
+        return false
+    }
+
+    const { data } = payload as { data: unknown }
+
+    return Boolean(
+        data &&
+        typeof data === 'object' &&
+        'url' in data &&
+        typeof data.url === 'string' &&
+        data.url.trim()
+    )
+}
+
 const getErrorMessage = (payload: unknown) => {
     if (
         payload &&
@@ -132,14 +152,22 @@ export const uploadVideoAsset = ({
             })
         })
 
-        const finalizeRequest = () => {
+        const finalizeRequest = ({
+            allowPendingPayload = false
+        }: {
+            allowPendingPayload?: boolean
+        } = {}) => {
             if (xhr.readyState !== XMLHttpRequest.DONE || settled) {
                 return
             }
 
             const payload = safeParsePayload()
 
-            if (xhr.status < 200 || xhr.status >= 300 || !payload?.ok || !payload?.data?.url) {
+            if (allowPendingPayload && xhr.status >= 200 && xhr.status < 300 && payload === null) {
+                return
+            }
+
+            if (xhr.status < 200 || xhr.status >= 300 || !isUploadedVideoAsset(payload)) {
                 settleError(payload)
                 return
             }
@@ -147,8 +175,8 @@ export const uploadVideoAsset = ({
             settleSuccess(payload)
         }
 
-        xhr.onload = finalizeRequest
-        xhr.onreadystatechange = finalizeRequest
+        xhr.onload = () => finalizeRequest()
+        xhr.onreadystatechange = () => finalizeRequest({ allowPendingPayload: true })
 
         xhr.onerror = () => {
             settleError({ message: 'No se pudo completar la subida.' })

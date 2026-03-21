@@ -1,13 +1,7 @@
-import { PRIMARYCOLOR } from "@/constant/Colors"
-import { ModelType, TagType, VideoType } from "@/types/Types"
-import dayjs from "dayjs"
 import { NextPage } from "next"
 
-import relativeTime from "dayjs/plugin/relativeTime"
-import { Card } from "@hugeicons-pro/core-stroke-rounded"
 import CardVideo from "@/components/CardVideo"
-
-dayjs.extend(relativeTime)
+import { VideoType } from "@/types/Types"
 
 
 interface Props {
@@ -17,12 +11,7 @@ interface Props {
 const VideosViewer: NextPage<Props> = ({ videos }) => {
     return (
         <div className="w-full">
-            <div className="
-                grid
-            
-
-    grid-cols-[repeat(auto-fit,minmax(355px,1fr))]
-            ">
+            <div className="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(280px,1fr))]">
                 {videos.map((video) => (
                     <CardVideo key={video._id} video={video} />
                 ))}
