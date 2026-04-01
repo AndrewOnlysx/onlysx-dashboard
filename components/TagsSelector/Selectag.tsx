@@ -4,6 +4,7 @@ import { NextPage } from 'next'
 import { useEffect, useMemo, useState, useTransition } from 'react'
 
 import { GetTags } from '@/database/actions/Tags/GetTags'
+import { dashboardChipSx, dashboardMenuPaperSx, dashboardSearchFieldSx, dashboardSelectSx } from '@/components/selectorStyles'
 
 import {
     Select,
@@ -71,10 +72,14 @@ const SelectTag: NextPage<Props> = ({ selectedTags, setSelectedTags }) => {
                 fullWidth
                 value={selectedTags.map((t) => t._id)}
                 displayEmpty
-                renderValue={() => 'Seleccionar tags'}
+                renderValue={(selected) => {
+                    const values = selected as string[]
+                    return values.length === 0 ? 'Seleccionar tags' : `${values.length} tags seleccionados`
+                }}
+                sx={dashboardSelectSx}
                 MenuProps={{
                     PaperProps: {
-                        sx: { maxHeight: 350 }
+                        sx: { ...dashboardMenuPaperSx, maxHeight: 350 }
                     }
                 }}
             >
@@ -85,6 +90,7 @@ const SelectTag: NextPage<Props> = ({ selectedTags, setSelectedTags }) => {
                         autoFocus
                         placeholder="Buscar tag..."
                         fullWidth
+                        sx={dashboardSearchFieldSx}
                         onChange={(e) => setSearch(e.target.value)}
                         onKeyDown={(e) => e.stopPropagation()}
                     />
@@ -131,6 +137,7 @@ const SelectTag: NextPage<Props> = ({ selectedTags, setSelectedTags }) => {
                         color='primary'
                         label={tag.name}
                         onDelete={() => handleDelete(tag._id)}
+                        sx={dashboardChipSx}
                     />
                 ))}
             </Box>

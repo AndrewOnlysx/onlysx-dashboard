@@ -19,25 +19,11 @@ export interface UploadedVideoAsset {
     key: string
 }
 
-interface DirectSingleUploadDescriptor extends UploadedVideoAsset {
-    strategy: 'single'
+interface PreparedUploadAsset extends UploadedVideoAsset {
     uploadUrl: string
     method: 'PUT'
     headers?: Record<string, string>
 }
-
-interface DirectMultipartUploadDescriptor extends UploadedVideoAsset {
-    strategy: 'multipart'
-    uploadId: string
-    partSize: number
-    method: 'PUT'
-    parts: Array<{
-        partNumber: number
-        uploadUrl: string
-    }>
-}
-
-type UploadDescriptor = DirectSingleUploadDescriptor | DirectMultipartUploadDescriptor
 
 interface UploadVideoAssetOptions {
     file: File
@@ -51,6 +37,8 @@ export interface VideoAssetUploadTask {
     abort: () => void
     promise: Promise<UploadedVideoAsset>
 }
+
+const UPLOAD_LOG_PREFIX = '[upload]'
 
 const isUploadedVideoAsset = (payload: unknown): payload is { ok: true; data: UploadedVideoAsset } => {
     if (!payload || typeof payload !== 'object') {
@@ -76,56 +64,26 @@ const isUploadedVideoAsset = (payload: unknown): payload is { ok: true; data: Up
         typeof data.type === 'string' &&
         'url' in data &&
         typeof data.url === 'string' &&
-        data.url.trim() &&
         'key' in data &&
         typeof data.key === 'string'
     )
 }
 
-const isUploadDescriptor = (payload: unknown): payload is { ok: true; data: UploadDescriptor } => {
+const isPreparedUploadAsset = (payload: unknown): payload is { ok: true; data: PreparedUploadAsset } => {
     if (!isUploadedVideoAsset(payload)) {
         return false
     }
 
-    const data = payload.data as unknown
+    const { data } = payload as { data: unknown }
 
-    if (!data || typeof data !== 'object' || !('strategy' in data)) {
-        return false
-    }
-
-    if (data.strategy === 'single') {
-        return Boolean(
-            'uploadUrl' in data &&
-            typeof data.uploadUrl === 'string' &&
-            data.uploadUrl.trim() &&
-            'method' in data &&
-            data.method === 'PUT'
-        )
-    }
-
-    if (data.strategy === 'multipart') {
-        const parts = 'parts' in data ? data.parts : undefined
-
-        return Boolean(
-            'uploadId' in data &&
-            typeof data.uploadId === 'string' &&
-            data.uploadId.trim() &&
-            'partSize' in data &&
-            typeof data.partSize === 'number' &&
-            Array.isArray(parts) &&
-            parts.every((part) => (
-                part &&
-                typeof part === 'object' &&
-                'partNumber' in part &&
-                typeof part.partNumber === 'number' &&
-                'uploadUrl' in part &&
-                typeof part.uploadUrl === 'string' &&
-                part.uploadUrl.trim()
-            ))
-        )
-    }
-
-    return false
+    return Boolean(
+        data &&
+        typeof data === 'object' &&
+        'uploadUrl' in data &&
+        typeof data.uploadUrl === 'string' &&
+        'method' in data &&
+        data.method === 'PUT'
+    )
 }
 
 const getErrorMessage = (payload: unknown, status?: number) => {
@@ -139,38 +97,143 @@ const getErrorMessage = (payload: unknown, status?: number) => {
     }
 
     if (status === 413) {
-        return 'El archivo es demasiado pesado para este endpoint. Intenta con un archivo mas pequeno o cambia la estrategia de subida.'
+        return 'El archivo es demasiado pesado para este endpoint.'
     }
 
     return 'No se pudo completar la subida.'
 }
 
-const getTransportErrorMessage = (uploadUrl: string) => {
-    try {
-        const { hostname } = new URL(uploadUrl)
-
-        if (hostname.endsWith('.r2.cloudflarestorage.com')) {
-            return 'La URL firmada de R2 fue bloqueada por CORS. Debes permitir este origin en la configuracion del bucket.'
-        }
-    } catch {
-        return 'No se pudo completar la subida.'
-    }
-
-    return 'No se pudo completar la subida.'
-}
-
-const createSnapshot = ({
-    uploadedBytes,
-    totalBytes,
-}: {
-    uploadedBytes: number
-    totalBytes: number
-}): UploadProgressSnapshot => ({
-    progress: totalBytes > 0 ? Math.min(100, Math.round((uploadedBytes / totalBytes) * 100)) : 0,
+const createSnapshot = (
+    uploadedBytes: number,
+    totalBytes: number,
+    maxProgress = 100
+): UploadProgressSnapshot => ({
+    progress: totalBytes > 0 ? Math.min(maxProgress, Math.round((uploadedBytes / totalBytes) * maxProgress)) : 0,
     uploadedBytes,
     totalBytes,
     remainingBytes: Math.max(0, totalBytes - uploadedBytes)
 })
+
+const parseResponse = (responseText: string): unknown => {
+    if (!responseText) {
+        return null
+    }
+
+    try {
+        return JSON.parse(responseText) as unknown
+    } catch {
+        return null
+    }
+}
+
+const shouldUseLocalVideoUpload = () => {
+    if (typeof window === 'undefined') {
+        return false
+    }
+
+    return window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+}
+
+const uploadThroughLocalApi = ({
+    xhr,
+    file,
+    assetType,
+    folder,
+    onProgress,
+    onStatusChange,
+    resolve,
+    reject,
+}: {
+    xhr: XMLHttpRequest
+    file: File
+    assetType: VideoAssetType
+    folder: string
+    onProgress?: (snapshot: UploadProgressSnapshot) => void
+    onStatusChange?: (status: VideoAssetUploadStatus) => void
+    resolve: (value: UploadedVideoAsset) => void
+    reject: (reason?: unknown) => void
+}) => {
+    const formData = new FormData()
+
+    formData.set('file', file)
+    formData.set('assetType', assetType)
+    formData.set('folder', folder)
+
+    console.log(`${UPLOAD_LOG_PREFIX} start-local`, {
+        assetType,
+        fileName: file.name,
+        fileSize: file.size,
+    })
+
+    xhr.open('POST', '/api/videos/uploadFiles')
+    xhr.responseType = 'text'
+
+    xhr.upload.addEventListener('loadstart', () => {
+        onStatusChange?.('uploading')
+        onProgress?.(createSnapshot(0, file.size, 78))
+    })
+
+    xhr.upload.addEventListener('progress', (event: ProgressEvent<EventTarget>) => {
+        onStatusChange?.('uploading')
+        onProgress?.(createSnapshot(Math.min(file.size, event.loaded), file.size, 78))
+    })
+
+    xhr.upload.addEventListener('load', () => {
+        onStatusChange?.('processing')
+        onProgress?.(createSnapshot(file.size, file.size, 88))
+    })
+
+    xhr.onload = () => {
+        const payload = parseResponse(xhr.responseText)
+
+        if (xhr.status < 200 || xhr.status >= 300 || !isUploadedVideoAsset(payload)) {
+            const message = getErrorMessage(payload, xhr.status)
+
+            console.error(`${UPLOAD_LOG_PREFIX} error-local`, {
+                assetType,
+                fileName: file.name,
+                message,
+                status: xhr.status,
+            })
+
+            onStatusChange?.('error')
+            reject(new Error(message))
+            return
+        }
+
+        console.log(`${UPLOAD_LOG_PREFIX} success-local`, {
+            assetType,
+            fileName: payload.data.filename,
+            url: payload.data.url,
+        })
+
+        onProgress?.(createSnapshot(file.size, file.size))
+        onStatusChange?.('success')
+        resolve(payload.data)
+    }
+
+    xhr.onerror = () => {
+        console.error(`${UPLOAD_LOG_PREFIX} error-local`, {
+            assetType,
+            fileName: file.name,
+            message: 'Fallo la subida por servidor.',
+        })
+
+        onStatusChange?.('error')
+        reject(new Error('No se pudo completar la subida.'))
+    }
+
+    xhr.onabort = () => {
+        console.warn(`${UPLOAD_LOG_PREFIX} aborted-local`, {
+            assetType,
+            fileName: file.name,
+        })
+
+        reject(new DOMException('Upload aborted', 'AbortError'))
+    }
+
+    xhr.send(formData)
+}
 
 export const uploadVideoAsset = ({
     file,
@@ -179,240 +242,148 @@ export const uploadVideoAsset = ({
     onProgress,
     onStatusChange
 }: UploadVideoAssetOptions): VideoAssetUploadTask => {
-    let activeRequest: XMLHttpRequest | null = null
-    let activeMultipartContext: { key: string; uploadId: string } | null = null
-    let rejectedByAbort = false
-    let rejectPromise: ((reason?: unknown) => void) | null = null
+    const xhr = new XMLHttpRequest()
+    let prepareController: AbortController | null = null
 
-    const abortMultipart = () => {
-        if (!activeMultipartContext) {
+    const promise = new Promise<UploadedVideoAsset>((resolve, reject) => {
+        if (assetType === 'cover' || shouldUseLocalVideoUpload()) {
+            uploadThroughLocalApi({
+                xhr,
+                file,
+                assetType,
+                folder,
+                onProgress,
+                onStatusChange,
+                resolve,
+                reject,
+            })
+
             return
         }
+
+        console.log(`${UPLOAD_LOG_PREFIX} prepare`, {
+            assetType,
+            fileName: file.name,
+            fileSize: file.size,
+        })
+
+        prepareController = new AbortController()
 
         void fetch('/api/videos/uploadFiles', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
+            signal: prepareController.signal,
             body: JSON.stringify({
-                action: 'abortMultipart',
-                key: activeMultipartContext.key,
-                uploadId: activeMultipartContext.uploadId,
+                filename: file.name,
+                type: file.type,
+                size: file.size,
+                assetType,
+                folder,
             })
         })
-    }
+            .then(async (response) => {
+                const payload = await response.json().catch(() => null)
 
-    const uploadChunk = ({
-        uploadUrl,
-        blob,
-        headers,
-        uploadedBytesBefore = 0,
-    }: {
-        uploadUrl: string
-        blob: Blob
-        headers?: Record<string, string>
-        uploadedBytesBefore?: number
-    }) => new Promise<{ etag?: string }>((resolve, reject) => {
-        const xhr = new XMLHttpRequest()
-        activeRequest = xhr
+                if (!response.ok || !isPreparedUploadAsset(payload)) {
+                    throw new Error(getErrorMessage(payload, response.status))
+                }
 
-        xhr.open('PUT', uploadUrl)
-        xhr.responseType = 'text'
+                const prepared = payload.data
 
-        Object.entries(headers ?? {}).forEach(([header, value]) => {
-            xhr.setRequestHeader(header, value)
-        })
-
-        xhr.upload.addEventListener('loadstart', () => {
-            onStatusChange?.('uploading')
-            onProgress?.(createSnapshot({
-                uploadedBytes: uploadedBytesBefore,
-                totalBytes: file.size,
-            }))
-        })
-
-        xhr.upload.addEventListener('progress', (event) => {
-            const uploadedBytes = Math.min(file.size, uploadedBytesBefore + event.loaded)
-            onStatusChange?.('uploading')
-            onProgress?.(createSnapshot({
-                uploadedBytes,
-                totalBytes: file.size,
-            }))
-        })
-
-        xhr.onload = () => {
-            activeRequest = null
-
-            if (xhr.status < 200 || xhr.status >= 300) {
-                reject(new Error(getErrorMessage(null, xhr.status)))
-                return
-            }
-
-            const etag = xhr.getResponseHeader('ETag')?.replaceAll('"', '')
-            resolve({ etag: etag || undefined })
-        }
-
-        xhr.onerror = () => {
-            activeRequest = null
-            reject(new Error(getTransportErrorMessage(uploadUrl)))
-        }
-
-        xhr.onabort = () => {
-            activeRequest = null
-            reject(new DOMException('Upload aborted', 'AbortError'))
-        }
-
-        xhr.send(blob)
-    })
-
-    const promise = new Promise<UploadedVideoAsset>(async (resolve, reject) => {
-        rejectPromise = reject
-
-        let descriptor: UploadDescriptor | null = null
-
-        try {
-            const response = await fetch('/api/videos/uploadFiles', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    filename: file.name,
-                    size: file.size,
-                    type: file.type,
+                console.log(`${UPLOAD_LOG_PREFIX} start`, {
                     assetType,
-                    folder,
-                })
-            })
-
-            const payload = await response.json().catch(() => null)
-
-            if (!response.ok || !isUploadDescriptor(payload)) {
-                reject(new Error(getErrorMessage(payload, response.status)))
-                return
-            }
-
-            descriptor = payload.data
-
-            if (rejectedByAbort) {
-                reject(new DOMException('Upload aborted', 'AbortError'))
-                return
-            }
-
-            if (descriptor.strategy === 'single') {
-                await uploadChunk({
-                    uploadUrl: descriptor.uploadUrl,
-                    blob: file,
-                    headers: descriptor.headers,
+                    fileName: prepared.filename,
+                    fileSize: file.size,
+                    key: prepared.key,
                 })
 
-                onStatusChange?.('processing')
-                onProgress?.(createSnapshot({
-                    uploadedBytes: file.size,
-                    totalBytes: file.size,
-                }))
-                onStatusChange?.('success')
-                resolve(descriptor)
-                return
-            }
+                xhr.open('PUT', prepared.uploadUrl)
+                xhr.responseType = 'text'
 
-            activeMultipartContext = {
-                key: descriptor.key,
-                uploadId: descriptor.uploadId,
-            }
+                Object.entries(prepared.headers ?? {}).forEach(([header, value]) => {
+                    xhr.setRequestHeader(header, value)
+                })
 
-            const completedParts: Array<{ ETag: string; PartNumber: number }> = []
-            let uploadedBytesBefore = 0
+                xhr.upload.addEventListener('loadstart', () => {
+                    onStatusChange?.('uploading')
+                    onProgress?.(createSnapshot(0, file.size))
+                })
 
-            for (const part of descriptor.parts) {
-                if (rejectedByAbort) {
-                    abortMultipart()
+                xhr.upload.addEventListener('progress', (event: ProgressEvent<EventTarget>) => {
+                    onStatusChange?.('uploading')
+                    onProgress?.(createSnapshot(Math.min(file.size, event.loaded), file.size))
+                })
+
+                xhr.onload = () => {
+                    if (xhr.status < 200 || xhr.status >= 300) {
+                        console.error(`${UPLOAD_LOG_PREFIX} error`, {
+                            assetType,
+                            fileName: prepared.filename,
+                            message: 'Cloudflare rechazo la subida.',
+                            status: xhr.status,
+                        })
+
+                        onStatusChange?.('error')
+                        reject(new Error('No se pudo completar la subida.'))
+                        return
+                    }
+
+                    console.log(`${UPLOAD_LOG_PREFIX} success`, {
+                        assetType,
+                        fileName: prepared.filename,
+                        url: prepared.url,
+                    })
+
+                    onProgress?.(createSnapshot(file.size, file.size))
+                    onStatusChange?.('success')
+                    resolve(prepared)
+                }
+
+                xhr.onerror = () => {
+                    console.error(`${UPLOAD_LOG_PREFIX} error`, {
+                        assetType,
+                        fileName: prepared.filename,
+                        message: 'Fallo la subida directa a Cloudflare.',
+                    })
+
+                    onStatusChange?.('error')
+                    reject(new Error('No se pudo completar la subida.'))
+                }
+
+                xhr.onabort = () => {
+                    console.warn(`${UPLOAD_LOG_PREFIX} aborted`, {
+                        assetType,
+                        fileName: prepared.filename,
+                    })
+
                     reject(new DOMException('Upload aborted', 'AbortError'))
-                    return
                 }
 
-                const start = (part.partNumber - 1) * descriptor.partSize
-                const end = Math.min(start + descriptor.partSize, file.size)
-                const chunk = file.slice(start, end)
-                const { etag } = await uploadChunk({
-                    uploadUrl: part.uploadUrl,
-                    blob: chunk,
-                    uploadedBytesBefore,
-                })
-
-                uploadedBytesBefore += chunk.size
-                onProgress?.(createSnapshot({
-                    uploadedBytes: uploadedBytesBefore,
-                    totalBytes: file.size,
-                }))
-
-                if (!etag) {
-                    abortMultipart()
-                    reject(new Error('No se pudo confirmar una parte del multipart upload.'))
-                    return
-                }
-
-                completedParts.push({
-                    ETag: etag,
-                    PartNumber: part.partNumber,
-                })
-            }
-
-            onStatusChange?.('processing')
-
-            const completeResponse = await fetch('/api/videos/uploadFiles', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    action: 'completeMultipart',
-                    assetType,
-                    filename: descriptor.filename,
-                    size: descriptor.size,
-                    type: descriptor.type,
-                    key: descriptor.key,
-                    uploadId: descriptor.uploadId,
-                    parts: completedParts,
-                })
+                xhr.send(file)
             })
+            .catch((error) => {
+                if (error instanceof DOMException && error.name === 'AbortError') {
+                    reject(error)
+                    return
+                }
 
-            const completePayload = await completeResponse.json().catch(() => null)
+                console.error(`${UPLOAD_LOG_PREFIX} error`, {
+                    assetType,
+                    fileName: file.name,
+                    message: error instanceof Error ? error.message : 'No se pudo preparar la subida.',
+                })
 
-            if (!completeResponse.ok || !isUploadedVideoAsset(completePayload)) {
-                reject(new Error(getErrorMessage(completePayload, completeResponse.status)))
-                return
-            }
-
-            activeMultipartContext = null
-            onStatusChange?.('success')
-            resolve(completePayload.data)
-        } catch (error) {
-            if (descriptor?.strategy === 'multipart') {
-                abortMultipart()
-            }
-
-            if (error instanceof DOMException && error.name === 'AbortError') {
-                reject(error)
-                return
-            }
-
-            onStatusChange?.('error')
-            reject(error instanceof Error ? error : new Error('No se pudo completar la subida.'))
-        }
+                onStatusChange?.('error')
+                reject(error instanceof Error ? error : new Error('No se pudo completar la subida.'))
+            })
     })
 
     return {
         abort: () => {
-            rejectedByAbort = true
-
-            if (activeRequest) {
-                activeRequest.abort()
-            } else if (rejectPromise) {
-                rejectPromise(new DOMException('Upload aborted', 'AbortError'))
-            }
-
-            abortMultipart()
+            prepareController?.abort()
+            xhr.abort()
         },
         promise
     }

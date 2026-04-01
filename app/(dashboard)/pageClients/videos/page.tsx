@@ -1,4 +1,5 @@
 import { NextPage } from 'next'
+import Link from 'next/link'
 
 import ContainerPage from '@/components/Layout/Layouts'
 import { GetVideos } from '@/database/actions/videos/GetVideos'
@@ -15,6 +16,11 @@ const Page: NextPage<Props> = async () => {
             eyebrow="Catalogo"
             title="Videos"
             description="Gestion centralizada del catalogo audiovisual con filtros, indicadores y acceso directo a la edicion de cada registro."
+            actions={
+                <Link href="/pageClients/videos/upload-debug" className="secondary-action">
+                    Probar Upload Aislado
+                </Link>
+            }
         >
             <VideoAdminScreen
                 videos={videos}

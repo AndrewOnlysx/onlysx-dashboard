@@ -4,6 +4,7 @@ import { useEffect, useState, useTransition } from 'react'
 import { Avatar, Box, Checkbox, Chip, CircularProgress, ListSubheader, MenuItem, Select, TextField, Typography } from '@mui/material'
 
 import { GetAllGalery } from '@/database/actions/galeries/GetAllGallery'
+import { dashboardChipSx, dashboardMenuPaperSx, dashboardSearchFieldSx, dashboardSelectSx } from '@/components/selectorStyles'
 import { GalleryType } from '@/types/Types'
 
 interface Props {
@@ -49,10 +50,14 @@ const SelectGallery = ({ selectedGaleries, setSelectedGaleries }: Props) => {
                 fullWidth
                 value={selectedGaleries.map((gallery) => gallery._id)}
                 displayEmpty
-                renderValue={() => 'Seleccionar galerias'}
+                renderValue={(selected) => {
+                    const values = selected as string[]
+                    return values.length === 0 ? 'Seleccionar galerias' : `${values.length} galerias seleccionadas`
+                }}
+                sx={dashboardSelectSx}
                 MenuProps={{
                     PaperProps: {
-                        sx: { maxHeight: 360 }
+                        sx: { ...dashboardMenuPaperSx, maxHeight: 360 }
                     }
                 }}
             >
@@ -62,6 +67,7 @@ const SelectGallery = ({ selectedGaleries, setSelectedGaleries }: Props) => {
                         autoFocus
                         fullWidth
                         placeholder="Buscar galeria..."
+                        sx={dashboardSearchFieldSx}
                         onChange={(event) => setSearch(event.target.value)}
                         onKeyDown={(event) => event.stopPropagation()}
                     />
@@ -103,6 +109,7 @@ const SelectGallery = ({ selectedGaleries, setSelectedGaleries }: Props) => {
                         avatar={<Avatar src={gallery.images?.[0]?.url} variant="rounded" />}
                         label={gallery.name}
                         onDelete={() => handleDelete(gallery._id)}
+                        sx={dashboardChipSx}
                     />
                 ))}
             </Box>

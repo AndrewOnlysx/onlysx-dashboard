@@ -58,6 +58,11 @@ const createPersistedUploadState = (url: string): AssetUploadState =>
 const isAbortError = (error: unknown) =>
     error instanceof DOMException && error.name === 'AbortError'
 
+const FORM_LOG_PREFIX = '[video-form]'
+
+const isUploadPending = (upload: AssetUploadState) =>
+    upload.status === 'idle' && !upload.remoteUrl.trim()
+
 export const useVideoForm = ({
     mode = 'create',
     initialVideo
@@ -127,13 +132,18 @@ export const useVideoForm = ({
         : generatedCoverFile
             ? generatedCoverUpload.remoteUrl
             : persistedCoverUrl
-    const uploadedVideoUrl = videoUpload.remoteUrl || persistedVideoUrl
-    const dumpRemoteUrl = videoUpload.remoteUrl || persistedDumpUrl || persistedVideoUrl
+    const uploadedVideoUrl = videoFile
+        ? videoUpload.remoteUrl
+        : persistedVideoUrl
+    const dumpRemoteUrl = videoFile
+        ? videoUpload.remoteUrl
+        : persistedDumpUrl || persistedVideoUrl
     const dumpUrl = videoPreviewUrl || dumpRemoteUrl
     const previewWindows = buildPreviewWindows(videoDurationSeconds)
     const isUploadingAssets = [manualCoverUpload, generatedCoverUpload, videoUpload].some((upload) =>
         upload.status === 'uploading' || upload.status === 'processing'
     )
+    const canUploadDependentAssets = !videoFile || videoUpload.status === 'success'
 
     const generatedSearchParams = buildVideoSearchParams({
         title,
@@ -273,8 +283,60 @@ export const useVideoForm = ({
         }
     }, [])
 
+    useEffect(() => {
+        if (!canUploadDependentAssets) {
+            return
+        }
+
+        if (
+            manualCoverFile &&
+            isUploadPending(manualCoverUpload) &&
+            !uploadTasksRef.current.manualCover
+        ) {
+            setAssetMessage('')
+            console.log(`${FORM_LOG_PREFIX} deferred-upload-start`, {
+                kind: 'manualCover',
+                fileName: manualCoverFile.name,
+            })
+
+            startUpload({
+                kind: 'manualCover',
+                file: manualCoverFile,
+                assetType: 'cover'
+            })
+
+            return
+        }
+
+        if (
+            !manualCoverFile &&
+            generatedCoverFile &&
+            isUploadPending(generatedCoverUpload) &&
+            !uploadTasksRef.current.generatedCover
+        ) {
+            setAssetMessage('')
+            console.log(`${FORM_LOG_PREFIX} deferred-upload-start`, {
+                kind: 'generatedCover',
+                fileName: generatedCoverFile.name,
+            })
+
+            startUpload({
+                kind: 'generatedCover',
+                file: generatedCoverFile,
+                assetType: 'cover'
+            })
+        }
+    }, [
+        canUploadDependentAssets,
+        generatedCoverFile,
+        generatedCoverUpload,
+        manualCoverFile,
+        manualCoverUpload,
+    ])
+
     const abortUpload = (kind: UploadKind) => {
         const currentTask = uploadTasksRef.current[kind]
+
         uploadTasksRef.current[kind] = null
         currentTask?.abort()
     }
@@ -385,6 +447,8 @@ export const useVideoForm = ({
 
         abortUpload(kind)
 
+        console.log(`${FORM_LOG_PREFIX} upload-start`, { kind, assetType, fileName: file.name })
+
         setUploadState({
             status: 'uploading',
             progress: 0,
@@ -396,7 +460,6 @@ export const useVideoForm = ({
         })
 
         let task: VideoAssetUploadTask | null = null
-
         task = uploadVideoAsset({
             file,
             assetType,
@@ -423,16 +486,20 @@ export const useVideoForm = ({
                 setUploadState((prev) => ({
                     ...prev,
                     status,
-                    progress: status === 'processing' || status === 'success'
+                    progress: status === 'success'
                         ? 100
-                        : prev.progress,
-                    uploadedBytes: status === 'processing' || status === 'success'
+                        : status === 'processing'
+                            ? Math.max(prev.progress, 88)
+                            : prev.progress,
+                    uploadedBytes: status === 'success' || status === 'processing'
                         ? file.size
                         : prev.uploadedBytes,
                     totalBytes: prev.totalBytes || file.size,
-                    remainingBytes: status === 'processing' || status === 'success'
+                    remainingBytes: status === 'success'
                         ? 0
-                        : prev.remainingBytes,
+                        : status === 'processing'
+                            ? 0
+                            : prev.remainingBytes,
                     error: status === 'error' ? prev.error : ''
                 }))
             }
@@ -445,6 +512,8 @@ export const useVideoForm = ({
                 if (!task || uploadTasksRef.current[kind] !== task) {
                     return
                 }
+
+                console.log(`${FORM_LOG_PREFIX} upload-success`, { kind, assetType, fileName: file.name, url: uploadedAsset.url })
 
                 setUploadState({
                     status: 'success',
@@ -465,6 +534,8 @@ export const useVideoForm = ({
                     setUploadState(createInitialUploadState())
                     return
                 }
+
+                console.error(`${FORM_LOG_PREFIX} upload-error`, { kind, assetType, fileName: file.name, error })
 
                 setUploadState((prev) => ({
                     ...prev,
@@ -519,6 +590,12 @@ export const useVideoForm = ({
         setSubmitStatus('idle')
         setErrors((prev) => ({ ...prev, image: undefined }))
 
+        if (!canUploadDependentAssets) {
+            setManualCoverUpload(createInitialUploadState())
+            setAssetMessage('La portada se subira automaticamente cuando termine el video principal.')
+            return
+        }
+
         startUpload({
             kind: 'manualCover',
             file: selectedFile,
@@ -532,6 +609,11 @@ export const useVideoForm = ({
         if (!selectedFile) {
             return
         }
+
+        console.log(`${FORM_LOG_PREFIX} video-selected`, {
+            fileName: selectedFile.name,
+            fileSize: selectedFile.size,
+        })
 
         videoSelectionRef.current += 1
         const currentSelectionId = videoSelectionRef.current
@@ -576,14 +658,10 @@ export const useVideoForm = ({
             setGeneratedCoverUrl(posterUrl)
             setVideoDurationSeconds(durationSeconds)
             setTime(durationLabel)
-
-            startUpload({
-                kind: 'generatedCover',
-                file: posterFile,
-                assetType: 'cover'
-            })
+            setGeneratedCoverUpload(createInitialUploadState())
+            setAssetMessage('La portada automatica ya esta lista y se subira cuando termine el video principal.')
         } catch (error) {
-            console.error('Error generando preview desde el video:', error)
+            console.error(`${FORM_LOG_PREFIX} poster-error`, { fileName: selectedFile.name, error })
 
             if (videoSelectionRef.current !== currentSelectionId) {
                 return
@@ -618,13 +696,17 @@ export const useVideoForm = ({
         if (!activeCoverUrl.trim()) {
             nextErrors.image = 'Carga una portada o genera una desde el video.'
         } else if ((manualCoverFile || generatedCoverFile) && !activeCoverUpload.remoteUrl.trim()) {
-            nextErrors.image = activeCoverUpload.status === 'uploading' || activeCoverUpload.status === 'processing'
-                ? 'Espera a que la portada termine de subirse.'
-                : 'La portada nueva aun no tiene una URL remota valida.'
+            nextErrors.image = !canUploadDependentAssets
+                ? 'La portada se subira cuando termine el video principal.'
+                : activeCoverUpload.status === 'uploading' || activeCoverUpload.status === 'processing'
+                    ? 'Espera a que la portada termine de subirse.'
+                    : 'La portada nueva aun no tiene una URL remota valida.'
         } else if (!activeCoverRemoteUrl.trim()) {
-            nextErrors.image = activeCoverUpload.status === 'uploading' || activeCoverUpload.status === 'processing'
-                ? 'Espera a que la portada termine de subirse.'
-                : 'La portada aun no tiene una URL remota valida.'
+            nextErrors.image = !canUploadDependentAssets
+                ? 'La portada se subira cuando termine el video principal.'
+                : activeCoverUpload.status === 'uploading' || activeCoverUpload.status === 'processing'
+                    ? 'Espera a que la portada termine de subirse.'
+                    : 'La portada aun no tiene una URL remota valida.'
         }
 
         if (!currentQuality.trim()) nextErrors.quality = 'Define una calidad para el video.'
@@ -680,7 +762,7 @@ export const useVideoForm = ({
                 })
             }
         } catch (error) {
-            console.error('Error preparando el payload del video:', error)
+            console.error(`${FORM_LOG_PREFIX} submit-error`, { error })
             setSubmitStatus('error')
             setSubmitMessage(
                 isEdit

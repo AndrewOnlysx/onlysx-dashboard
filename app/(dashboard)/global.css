@@ -191,6 +191,68 @@
     box-shadow: 0 24px 70px rgba(0, 0, 0, 0.22);
 }
 
+.editor-panel {
+    position: relative;
+    overflow: hidden;
+    background:
+        radial-gradient(circle at top right, rgba(255, 80, 164, 0.08), transparent 34%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.028), rgba(255, 255, 255, 0.012));
+}
+
+.editor-panel::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent 20%);
+}
+
+.editor-kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 12px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.04);
+    color: #d7ddea;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+}
+
+.editor-subpanel {
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 20px;
+    background: rgba(0, 0, 0, 0.2);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
+.editor-metric {
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.03);
+    padding: 16px;
+}
+
+.editor-dropzone {
+    border: 1px dashed rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    background: rgba(0, 0, 0, 0.2);
+    transition: border-color 0.2s ease, background-color 0.2s ease, transform 0.2s ease;
+}
+
+.editor-dropzone:hover {
+    border-color: rgba(255, 255, 255, 0.18);
+    transform: translateY(-1px);
+}
+
+.editor-dropzone--active {
+    border-color: rgba(255, 80, 164, 0.52);
+    background: rgba(255, 80, 164, 0.08);
+}
+
 
 
 .surface-metric {
@@ -316,6 +378,12 @@
     border: 1px solid rgba(229, 169, 77, 0.24);
     background: rgba(229, 169, 77, 0.12);
     color: #ffe8bd;
+}
+
+.status-pill-error {
+    border: 1px solid rgba(217, 103, 103, 0.26);
+    background: rgba(217, 103, 103, 0.14);
+    color: #ffcccc;
 }
 
 .empty-state {

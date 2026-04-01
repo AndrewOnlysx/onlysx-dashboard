@@ -17,6 +17,7 @@ const VideoPreviewSidebar = ({ preview }: Props) => {
         Boolean(preview.activeCoverRemoteUrl),
         Boolean(preview.uploadedVideoUrl)
     ].filter(Boolean).length
+    const relationshipSummary = `${preview.selectedModels.length} modelos • ${preview.selectedTags.length} tags • ${preview.selectedGaleriesCount} galerias`
     const coverStatusLabel = preview.manualCoverFile
         ? preview.activeCoverUpload.status === 'success'
             ? 'Cover manual'
@@ -62,13 +63,23 @@ const VideoPreviewSidebar = ({ preview }: Props) => {
     const qualityClassName = preview.currentQuality
         ? 'accent-pill'
         : 'muted-pill'
+    const syncStatusClassName = preview.isUploadingAssets
+        ? 'warning-pill'
+        : readyAssets === 2
+            ? 'success-pill'
+            : 'muted-pill'
+    const syncStatusLabel = preview.isUploadingAssets
+        ? 'Sincronizando assets'
+        : readyAssets === 2
+            ? 'Preview listo'
+            : 'Falta resolver assets'
     const submitFeedbackClassName = preview.submitStatus === 'error'
         ? 'border border-rose-400/20 bg-rose-400/10 text-rose-100'
         : 'border border-emerald-400/20 bg-emerald-400/10 text-emerald-100'
 
     return (
-        <aside className="space-y-5 xl:sticky xl:top-6 xl:self-start">
-            <section className="surface-panel overflow-hidden">
+        <aside className="space-y-6 xl:sticky xl:top-6 xl:self-start">
+            <section className="surface-panel editor-panel overflow-hidden">
                 <div className="group relative aspect-video overflow-hidden border-b border-white/8 bg-zinc-950">
                     {preview.activeCoverUrl ? (
                         <img
@@ -91,7 +102,7 @@ const VideoPreviewSidebar = ({ preview }: Props) => {
 
                     <div className="pointer-events-none absolute inset-x-0 bottom-0 flex items-center justify-between gap-3 bg-[linear-gradient(180deg,rgba(0,0,0,0)_0%,rgba(0,0,0,0.78)_100%)] px-5 pb-5 pt-10">
                         <div>
-                            <p className="text-[11px] uppercase tracking-[0.24em] text-zinc-400">Hover preview</p>
+                            <p className="text-[11px] uppercase tracking-[0.24em] text-zinc-400">Preview vivo</p>
                             <p className="mt-1 text-sm text-white">
                                 {preview.dumpUrl ? 'El hover recorre pequenos snippets del dump, no reproduce el video completo.' : 'Esperando video para construir el dump.'}
                             </p>
@@ -102,32 +113,60 @@ const VideoPreviewSidebar = ({ preview }: Props) => {
                     </div>
                 </div>
 
-                <div className="space-y-4 p-5">
-                    <div className="space-y-2">
+                <div className="relative space-y-5 p-5">
+                    <div className="space-y-3">
                         <div className="flex items-center justify-between gap-3">
-                            <span className="muted-pill">
-                                Preview admin
-                            </span>
+                            <span className="editor-kicker">Resumen del preview</span>
                             <span className={`${qualityClassName} normal-case tracking-normal text-xs`}>
                                 {preview.currentQuality || 'Sin calidad'}
                             </span>
                         </div>
 
-                        <h3 className="text-xl font-semibold tracking-tight">
-                            {preview.title || 'Nuevo video sin titulo'}
-                        </h3>
-                        <p className="text-sm text-zinc-400">
-                            {preview.time || 'Duracion pendiente'} • {formatCompactNumber(preview.views)} views iniciales
-                        </p>
+                        <div className="space-y-2">
+                            <h3 className="text-2xl font-semibold tracking-tight text-white">
+                                {preview.title || 'Nuevo video sin titulo'}
+                            </h3>
+                            <p className="text-sm text-zinc-400">
+                                {preview.time || 'Duracion pendiente'} • {formatCompactNumber(preview.views)} views iniciales
+                            </p>
+                            <p className="text-sm text-zinc-500">{relationshipSummary}</p>
+                        </div>
                     </div>
 
-                    <div className="space-y-3 rounded-[16px] border border-white/8 bg-black/20 p-4">
+                    <div className="grid gap-3 sm:grid-cols-2">
+                        <div className="editor-metric p-4">
+                            <div className="flex items-center justify-between gap-3">
+                                <span className="text-xs uppercase tracking-[0.2em] text-zinc-500">Checklist</span>
+                                <span className={`${preview.completedChecklist === preview.checklist.length ? 'success-pill' : 'warning-pill'} normal-case tracking-normal text-xs`}>
+                                    {preview.completedChecklist}/{preview.checklist.length}
+                                </span>
+                            </div>
+                            <div className="mt-3 h-2 overflow-hidden rounded-full bg-white/8">
+                                <div
+                                    className="h-full rounded-full bg-[var(--primary)] transition-all"
+                                    style={{ width: `${(preview.completedChecklist / preview.checklist.length) * 100}%` }}
+                                />
+                            </div>
+                        </div>
+
+                        <div className="editor-metric p-4">
+                            <div className="flex items-center justify-between gap-3">
+                                <span className="text-xs uppercase tracking-[0.2em] text-zinc-500">Assets remotos</span>
+                                <span className={`${syncStatusClassName} normal-case tracking-normal text-xs`}>
+                                    {syncStatusLabel}
+                                </span>
+                            </div>
+                            <p className="mt-3 text-2xl font-semibold text-white">{readyAssets}/2</p>
+                        </div>
+                    </div>
+
+                    <div className="editor-subpanel space-y-3 p-4">
                         {preview.checklist.map((item) => (
                             <div key={item.label} className="flex items-center justify-between gap-3 text-sm">
                                 <span className="text-zinc-300">{item.label}</span>
                                 <span
                                     className={`rounded-full px-3 py-1 text-xs ${item.done
-                                        ? 'accent-pill normal-case tracking-normal'
+                                        ? 'success-pill normal-case tracking-normal'
                                         : 'muted-pill normal-case tracking-normal'
                                         }`}
                                 >
@@ -137,20 +176,7 @@ const VideoPreviewSidebar = ({ preview }: Props) => {
                         ))}
                     </div>
 
-                    <div>
-                        <div className="mb-2 flex items-center justify-between text-sm">
-                            <span className="text-zinc-300">Completitud del formulario</span>
-                            <span className="text-zinc-400">{preview.completedChecklist}/4</span>
-                        </div>
-                        <div className="h-2 overflow-hidden rounded-full bg-white/8">
-                            <div
-                                className="h-full rounded-full bg-[var(--primary)] transition-all"
-                                style={{ width: `${(preview.completedChecklist / preview.checklist.length) * 100}%` }}
-                            />
-                        </div>
-                    </div>
-
-                    <div className="grid gap-3 rounded-[16px] border border-white/8 bg-black/20 p-4 text-sm">
+                    <div className="editor-subpanel grid gap-3 p-4 text-sm">
                         <div className="flex items-center justify-between gap-3">
                             <span className="text-zinc-400">Portada remota</span>
                             <span className="text-zinc-100">
@@ -186,24 +212,53 @@ const VideoPreviewSidebar = ({ preview }: Props) => {
                             ))}
                         </div>
                     </div>
+
+                    {preview.submitMessage && (
+                        <div className={`rounded-[16px] p-4 text-sm ${submitFeedbackClassName}`}>
+                            {preview.submitMessage}
+                        </div>
+                    )}
                 </div>
             </section>
 
-            <section className="surface-panel p-5">
+            <section className="surface-panel editor-panel p-5">
                 <div className="space-y-4">
-                    <div>
-                        <p className="text-xs uppercase tracking-[0.24em] text-zinc-500">Preview publico</p>
-                        <h3 className="mt-2 text-lg font-semibold">Asi quedaria el card</h3>
+                    <div className="flex items-center justify-between gap-3">
+                        <div>
+                            <p className="text-xs uppercase tracking-[0.24em] text-zinc-500">Preview publico</p>
+                            <h3 className="mt-2 text-lg font-semibold">Asi quedaria el card</h3>
+                        </div>
+                        <span className={`${coverStatusClassName} normal-case tracking-normal text-xs`}>
+                            {coverStatusLabel}
+                        </span>
                     </div>
 
                     <VideoCardPreview preview={preview} />
+
+                    <details className="editor-subpanel p-4">
+                        <summary className="cursor-pointer text-sm font-medium text-zinc-200">
+                            Ver payload estructural
+                        </summary>
+                        <pre className="mt-4 max-h-[340px] overflow-auto rounded-[16px] border border-white/8 bg-black/30 p-4 text-xs leading-6 text-zinc-300">
+                            {JSON.stringify(preview.draftSubmission, null, 2)}
+                        </pre>
+
+                        {preview.lastPayloadPreview && (
+                            <div className="mt-4 rounded-[16px] border border-white/8 bg-black/20 p-4">
+                                <p className="text-sm font-medium text-zinc-200">Ultimo payload enviado a consola</p>
+                                <pre className="mt-3 max-h-[280px] overflow-auto text-xs leading-6 text-zinc-400">
+                                    {preview.lastPayloadPreview}
+                                </pre>
+                            </div>
+                        )}
+                    </details>
                 </div>
             </section>
 
-            <section className="surface-panel p-5">
+            <section className="surface-panel editor-panel p-5">
                 <div className="space-y-4">
                     <div>
-                        <p className="text-xs uppercase tracking-[0.24em] text-zinc-500">Dump manual</p>
+                        <p className="text-xs uppercase tracking-[0.24em] text-zinc-500">Control de dump</p>
                         <h3 className="mt-2 text-lg font-semibold">Reproduccion controlada</h3>
                         <p className="mt-2 text-sm text-zinc-400">
                             Puedes disparar manualmente las mismas fracciones que usa el hover preview para revisar ritmo y cortes.
@@ -215,38 +270,6 @@ const VideoPreviewSidebar = ({ preview }: Props) => {
                         previewWindows={preview.previewWindows}
                         poster={preview.activeCoverUrl}
                     />
-                </div>
-            </section>
-
-            <section className="surface-panel p-5">
-                <div className="space-y-3">
-                    <div>
-                        <p className="text-xs uppercase tracking-[0.24em] text-zinc-500">
-                            {preview.mode === 'edit' ? 'Payload listo para actualizar' : 'Payload listo para crear'}
-                        </p>
-                        <h3 className="mt-2 text-lg font-semibold">Preview estructural</h3>
-                    </div>
-
-                    <pre className="max-h-[340px] overflow-auto rounded-[16px] border border-white/8 bg-black/30 p-4 text-xs leading-6 text-zinc-300">
-                        {JSON.stringify(preview.draftSubmission, null, 2)}
-                    </pre>
-
-                    {preview.submitMessage && (
-                        <div className={`rounded-[16px] p-4 text-sm ${submitFeedbackClassName}`}>
-                            {preview.submitMessage}
-                        </div>
-                    )}
-
-                    {preview.lastPayloadPreview && (
-                        <details className="rounded-[16px] border border-white/8 bg-black/20 p-4">
-                            <summary className="cursor-pointer text-sm font-medium text-zinc-200">
-                                Ultimo payload enviado a consola
-                            </summary>
-                            <pre className="mt-4 max-h-[280px] overflow-auto text-xs leading-6 text-zinc-400">
-                                {preview.lastPayloadPreview}
-                            </pre>
-                        </details>
-                    )}
                 </div>
             </section>
         </aside>

@@ -5,6 +5,7 @@ import { NextPage } from 'next'
 import { useEffect, useState, useTransition, useMemo } from 'react'
 
 import { GetModels } from '@/database/actions/models/GetModels'
+import { dashboardChipSx, dashboardMenuPaperSx, dashboardSearchFieldSx, dashboardSelectSx } from '@/components/selectorStyles'
 
 import {
     Select,
@@ -67,10 +68,14 @@ const SelectModel: NextPage<Props> = ({ selectedModels, setSelectedModels }) => 
                 fullWidth
                 value={selectedModels.map((m) => m._id)}
                 displayEmpty
-                renderValue={() => 'Seleccionar modelos'}
+                renderValue={(selected) => {
+                    const values = selected as string[]
+                    return values.length === 0 ? 'Seleccionar modelos' : `${values.length} modelos seleccionados`
+                }}
+                sx={dashboardSelectSx}
                 MenuProps={{
                     PaperProps: {
-                        sx: { maxHeight: 350 }
+                        sx: { ...dashboardMenuPaperSx, maxHeight: 350 }
                     }
                 }}
             >
@@ -81,6 +86,7 @@ const SelectModel: NextPage<Props> = ({ selectedModels, setSelectedModels }) => 
                         autoFocus
                         placeholder="Buscar modelo..."
                         fullWidth
+                        sx={dashboardSearchFieldSx}
                         onChange={(e) => setSearch(e.target.value)}
                         onKeyDown={(e) => e.stopPropagation()}
                     />
@@ -141,6 +147,7 @@ const SelectModel: NextPage<Props> = ({ selectedModels, setSelectedModels }) => 
                         avatar={<Avatar src={model.image} />}
                         label={model.name}
                         onDelete={() => handleDelete(model._id)}
+                        sx={dashboardChipSx}
                     />
                 ))}
             </Box>

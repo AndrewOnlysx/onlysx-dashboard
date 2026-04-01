@@ -3,7 +3,7 @@
 import * as React from 'react'
 import { Chip } from '@mui/material'
 import { DataGrid, GridColDef, GridToolbar } from '@mui/x-data-grid'
-
+import { useDropzone } from 'react-dropzone'
 import ContainerPage from '@/components/Layout/Layouts'
 
 const rows = [
@@ -43,29 +43,43 @@ const columns: GridColDef[] = [
 ]
 
 export default function Page() {
+    const [videoFile, setVideoFile] = React.useState<File | null>(null)
+    const { getRootProps, getInputProps, isDragActive } = useDropzone({
+        onDrop: (acceptedFiles) => {
+            console.log('Archivos aceptados:', acceptedFiles)
+            if (acceptedFiles.length > 0) {
+                setVideoFile(acceptedFiles[0])
+            }
+
+
+        },
+        onDropRejected: (fileRejections) => {
+            console.log('Archivos rechazados:', fileRejections)
+        },
+        maxFiles: 1,
+        accept: {
+            'video/mp4': ['.mp4', '.ts', '.mkv', '.avi'],
+            'video/webm': ['.webm'],
+            'video/quicktime': ['.mov'],
+        },
+    })
+
     return (
         <ContainerPage
             eyebrow="Operations"
             title="Data grid corporativo"
             description="Ejemplo operativo de tablas con toolbar, seleccion multiple y estados consistentes con el nuevo sistema visual."
         >
-            <div className="surface-panel data-grid-shell p-4" style={{ height: '76vh' }}>
-                <DataGrid
-                    rows={rows}
-                    columns={columns}
-                    showToolbar
-                    checkboxSelection
-                    disableRowSelectionOnClick
-                    pageSizeOptions={[5, 10, 20]}
-                    initialState={{
-                        pagination: {
-                            paginationModel: { pageSize: 5, page: 0 },
-                        },
-                    }}
-                    slots={{
-                        toolbar: GridToolbar,
-                    }}
-                />
+            <div {...getRootProps()} className={`mb-4 flex h-32 items-center justify-center rounded-lg border-2 border-dashed ${isDragActive ? 'border-blue-500 bg-blue-50' : 'border-gray-300 bg-gray-50'}`}>
+                <input {...getInputProps()} />
+                {isDragActive ? (
+                    <p className="text-blue-500">Suelta los archivos aquí...</p>
+                ) : (
+                    <video className="h-full w-auto" controls>
+                        <source src={videoFile ? URL.createObjectURL(videoFile) : '/sample-video.mp4'} type="video/mp4" />
+                        Tu navegador no soporta la etiqueta de video.
+                    </video>
+                )}
             </div>
         </ContainerPage>
     )

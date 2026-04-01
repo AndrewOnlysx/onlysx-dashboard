@@ -3,23 +3,55 @@ import { describe, expect, it, vi, beforeEach } from 'vitest'
 import { createUniqueVideoFixture } from '../../../../tests/helpers/videoFixture'
 
 const createDirectUploadTargetMock = vi.fn()
-const createMultipartUploadTargetMock = vi.fn()
-const createMultipartUploadPartUrlMock = vi.fn()
 const uploadFileMock = vi.fn()
 
 vi.mock('@/database/utils/cloudflare/Handler', () => ({
     CreateDirectUploadTarget: createDirectUploadTargetMock,
-    CreateMultipartUploadPartUrl: createMultipartUploadPartUrlMock,
-    CreateMultipartUploadTarget: createMultipartUploadTargetMock,
     UploadFile: uploadFileMock
 }))
 
 describe('POST /api/videos/uploadFiles', () => {
     beforeEach(() => {
         createDirectUploadTargetMock.mockReset()
-        createMultipartUploadTargetMock.mockReset()
-        createMultipartUploadPartUrlMock.mockReset()
         uploadFileMock.mockReset()
+    })
+
+    it('prepara una subida directa a cloudflare para reportar progreso real del put', async () => {
+        createDirectUploadTargetMock.mockResolvedValue({
+            success: true,
+            uploadUrl: 'https://r2.test/direct-put',
+            url: 'https://cdn.test/video.mp4',
+            key: 'page-content/test/video.mp4',
+            filename: 'video.mp4',
+        })
+
+        const { POST } = await import('./route')
+        const response = await POST(new Request('http://localhost/api/videos/uploadFiles', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                filename: 'video original.mp4',
+                type: 'video/mp4',
+                size: 1234,
+                assetType: 'video',
+                folder: 'videos-admin'
+            })
+        }))
+
+        const payload = await response.json()
+
+        expect(response.status).toBe(200)
+        expect(payload.ok).toBe(true)
+        expect(payload.data.uploadUrl).toBe('https://r2.test/direct-put')
+        expect(payload.data.url).toBe('https://cdn.test/video.mp4')
+        expect(createDirectUploadTargetMock).toHaveBeenCalledWith(
+            expect.objectContaining({
+                filename: 'video original.mp4',
+                contentType: 'video/mp4'
+            })
+        )
     })
 
     it('sube un video y devuelve la URL remota usando un nombre unico', async () => {
@@ -29,6 +61,7 @@ describe('POST /api/videos/uploadFiles', () => {
             success: true,
             url: `https://cdn.test/${videoFile.name}`,
             key: `page-content/test/${videoFile.name}`,
+            filename: videoFile.name.replace(/\s+/g, '-'),
             etag: 'etag-123'
         })
 
@@ -47,7 +80,7 @@ describe('POST /api/videos/uploadFiles', () => {
 
         expect(response.status).toBe(200)
         expect(payload.ok).toBe(true)
-        expect(payload.data.filename).toBe(videoFile.name)
+        expect(payload.data.filename).toBe(videoFile.name.replace(/\s+/g, '-'))
         expect(payload.data.url).toBe(`https://cdn.test/${videoFile.name}`)
         expect(videoFile.name).toMatch(/^6583402-uhd_4096_2160_25fps-[0-9a-f-]+\.mp4$/)
         expect(uploadFileMock).toHaveBeenCalledWith(
@@ -56,49 +89,19 @@ describe('POST /api/videos/uploadFiles', () => {
         )
     })
 
-    it('prepara multipart para videos grandes antes del limite maximo de PUT simple', async () => {
-        createMultipartUploadTargetMock.mockResolvedValue({
-            success: true,
-            uploadId: 'upload-123',
-            url: 'https://cdn.test/video.mp4',
-            key: 'page-content/test/video.mp4'
-        })
-        createMultipartUploadPartUrlMock
-            .mockResolvedValueOnce({ success: true, partNumber: 1, uploadUrl: 'https://r2.test/part-1' })
-            .mockResolvedValueOnce({ success: true, partNumber: 2, uploadUrl: 'https://r2.test/part-2' })
-            .mockResolvedValueOnce({ success: true, partNumber: 3, uploadUrl: 'https://r2.test/part-3' })
-
-        const largeVideoSize = 129 * 1024 * 1024
-
+    it('rechaza un prepare upload con json invalido', async () => {
         const { POST } = await import('./route')
         const response = await POST(new Request('http://localhost/api/videos/uploadFiles', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                filename: 'heavy-video.mp4',
-                size: largeVideoSize,
-                type: 'video/mp4',
-                assetType: 'video',
-                folder: 'videos-admin'
-            })
+            }
         }))
 
         const payload = await response.json()
 
-        expect(response.status).toBe(200)
-        expect(payload.ok).toBe(true)
-        expect(payload.data.strategy).toBe('multipart')
-        expect(payload.data.partSize).toBe(64 * 1024 * 1024)
-        expect(payload.data.parts).toHaveLength(3)
-        expect(createMultipartUploadTargetMock).toHaveBeenCalledWith(
-            expect.objectContaining({
-                filename: 'heavy-video.mp4',
-                contentType: 'video/mp4'
-            })
-        )
-        expect(createMultipartUploadPartUrlMock).toHaveBeenCalledTimes(3)
-        expect(createDirectUploadTargetMock).not.toHaveBeenCalled()
+        expect(response.status).toBe(400)
+        expect(payload.ok).toBe(false)
+        expect(payload.message).toBe('El cuerpo JSON es invalido.')
     })
 })

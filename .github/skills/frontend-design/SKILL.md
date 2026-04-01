@@ -1,16 +1,19 @@
--------------
 name: frontend-design
-description: Apply a design-system-first workflow for UI design, prioritizing project tokens, accessibility, and structured fallback rules before using defaults.
+description: Design-system-first workflow for UI design with deep rules, patterns, anti-patterns, and implementation guidance.
 --------------
-# Design System First UI Skill
+# Frontend Design Skill
 
 ## Goal
 
-Apply a design-system-first workflow before introducing any fallback UI defaults. Always prefer the project's existing design system, palette, typography, spacing, and component patterns over generic choices.
+Provide a design-system-first workflow for UI design with clear decision rules, patterns, anti-patterns, and implementation guidance. Always use the project's existing visual system before introducing fallback defaults.
+
+## Version
+
+2.0
 
 ## Core Principle
 
-Prioritize the project's design system before using defaults.
+Always prioritize the project's design system before using defaults.
 
 ## When To Use
 
@@ -19,80 +22,122 @@ Use this skill when:
 1. Designing a new screen, flow, or component.
 2. Updating an existing interface.
 3. Creating design tokens or implementation guidance.
-4. Translating product requirements into UI rules.
+4. Translating product requirements into practical UI rules.
+5. Reviewing a layout for consistency, hierarchy, and clarity.
 
-## Pre-Design Checklist
+## Workflow
 
-Before proposing styles or components, check:
+Follow this sequence before proposing styles, tokens, or component behaviors:
 
-1. Does the project have a design system?
-2. Does the project define a color palette?
-3. Does the project define typography?
-4. Is there a spacing scale?
-
-## Project Detection Priority
-
-Resolve visual decisions in this order:
-
-1. Project-defined design system.
-2. Project-defined color palette.
-3. Project-defined typography.
-4. Fallback design system defaults.
+1. Detect whether a design system exists.
+2. Detect the project palette.
+3. Detect the project typography.
+4. Detect the spacing system.
+5. If anything is missing, ask the user.
+6. If there is no answer, use fallback tokens.
+7. Never override project decisions.
 
 ## Required AI Behavior
 
-If the palette is missing, ask the user.
+- Prefer the project's design system, palette, typography, spacing, and component patterns over generic defaults.
+- Ask for missing palette, typography, or spacing information before inventing new tokens.
+- If the user does not respond, fall back to the default tokens in this file.
+- Never overwrite explicit project decisions with personal taste or generic trends.
+- If an element does not communicate something useful, remove it or simplify it.
 
-If typography is missing, ask the user.
+## Design Analysis
 
-If the user does not provide missing information, use default design system tokens.
+### Global Pattern
 
-Never override a project palette or typography system with personal or generic preferences.
+Modular, card-based UI oriented around data, with clear visual hierarchy and minimal but intentional use of color.
 
-## Color Rules
+### Mental Model
 
-### Global Rules
+Decision-oriented interfaces: every element should help the user understand, compare, or act.
 
-- Never override the project palette.
-- Use semantic colors only for status and state communication.
-- Maintain at least 4.5:1 contrast for normal text.
-- Target WCAG AA contrast compliance.
+## Color System
 
-### Color Categories
+### Principles
 
-#### Core Colors
+- Color communicates state, not decoration.
+- Fewer colors create more clarity.
+- Contrast defines hierarchy.
+- Background establishes layers.
 
-Purpose: brand identity and primary actions.
+### Layer Model
 
-- Primary: main user actions.
-- Secondary: secondary actions.
-- Neutral: structural UI elements.
+#### Background
 
-#### Semantic Colors
+Purpose: base layer of the application.
 
-Purpose: status communication.
+Rules:
 
-- Success: operation completed.
-- Error: system error or failure.
-- Warning: attention required.
-- Info: informational feedback.
+- It must contrast with cards and surfaces.
+- It must never compete with content.
 
-#### Background Colors
+#### Surface
 
-Purpose: visual hierarchy through layers.
+Purpose: cards and containers.
 
-Rule: each interface level should have a distinct background when layering is important to comprehension.
+Rules:
 
-#### Text Colors
+- It should be lighter or darker than the background.
+- It should visually separate content blocks.
 
-Purpose: readable content hierarchy.
+#### Elevated
 
-- Primary
-- Secondary
-- Tertiary
-- Disabled
+Purpose: modals, dropdowns, popovers, and floating UI.
 
-## Typography Rules
+Rules:
+
+- Use stronger contrast or shadow.
+- It should feel visually above the rest of the interface.
+
+### Correct Use Cases
+
+- Use the primary color only for important actions.
+- Use green only for success states.
+- Use red only for error states.
+
+### Incorrect Use Cases
+
+- Using multiple primary colors.
+- Using colors without semantic meaning.
+- Using red or green as decoration.
+
+### Example
+
+Correct:
+
+```jsx
+<div className="bg-gray-50">
+  <div className="bg-white text-gray-900">
+    <button className="bg-blue-600 text-white">Action</button>
+  </div>
+</div>
+```
+
+Incorrect:
+
+```jsx
+<div className="bg-red-200 text-green-400">Bad contrast</div>
+```
+
+## Typography
+
+### Principles
+
+- Use one font family.
+- Weight defines importance.
+- Size defines hierarchy.
+
+### Rules
+
+- Use a maximum of 3 weights: 400, 600, and 700.
+- Keep line height consistent.
+- Avoid unnecessary font changes.
+- Body line height should stay between 1.5 and 1.6.
+- Heading line height should stay between 1.1 and 1.3.
 
 ### Priority
 
@@ -100,22 +145,34 @@ Choose typography in this order:
 
 1. Project typography.
 2. Design system typography.
-3. System font fallback.
+3. Fallback system stack.
 
-### Fallback Stack
+### Correct Use Cases
 
-Use this stack only if no project typography exists:
+- Large, bold KPI values.
+- Small, lighter metadata.
+- Medium-weight titles.
 
-```css
-system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif
+### Incorrect Use Cases
+
+- Using multiple font families.
+- Making everything bold.
+- Using the same size for everything.
+
+### Example
+
+Correct:
+
+```jsx
+<h1 className="text-3xl font-bold">$12,400</h1>
+<p className="text-sm text-gray-500">Revenue</p>
 ```
 
-### Rules
+Incorrect:
 
-- Use no more than 3 font weights.
-- Maintain a clear typographic hierarchy.
-- Body line height should stay between 1.5 and 1.6.
-- Heading line height should stay between 1.1 and 1.3.
+```jsx
+<h1 className="text-lg font-normal">$12,400</h1>
+```
 
 ### Type Scale
 
@@ -132,92 +189,224 @@ system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-seri
 | `caption` | 14px | 20px | Metadata and labels |
 | `caption-small` | 12px | 20px | Secondary metadata |
 
-## Spacing Rules
+## Spacing
 
-### Spacing Scale
+### Principles
 
-Use this spacing system unless the project defines its own:
+- Space creates hierarchy.
+- More space implies more importance.
+- Spacing separates better than color.
+
+### Scale
 
 ```text
 4, 8, 12, 16, 24, 32, 48, 64
 ```
 
-### Guidance
+### Rules
 
-- Internal padding: small.
-- Component spacing: medium.
-- Section spacing: large.
+- Keep internal padding small.
+- Use medium gaps between related components.
+- Use large gaps between sections.
 
-### Reference Values
+### Correct Use Cases
 
-- Card padding: 16px.
-- Component gap: 24px.
-- Section gap: 64px.
+- Cards with 16px padding.
+- Sections separated by 32px or more.
 
-Spacing should create hierarchy more reliably than color alone.
+### Incorrect Use Cases
 
-## Border Radius Rules
+- Elements placed too close together.
+- Inconsistent spacing between similar structures.
 
-### Radius Scale
+### Example
+
+Correct:
+
+```jsx
+<div className="p-4 space-y-6">
+  <div className="p-4 bg-white"></div>
+</div>
+```
+
+Incorrect:
+
+```jsx
+<div className="p-1">
+  <div></div>
+</div>
+```
+
+## Radius
+
+### Principles
+
+- Maintain visual consistency.
+- Use modern softness deliberately.
+
+### Scale
 
 ```text
 0, 4, 8, 16, 24, 48
 ```
 
-### Guidelines
+### Rules
 
-- Utilitarian UI: small radius.
-- Modern UI: medium radius.
-- Playful UI: large radius.
-
-### Reference Values
-
-- Buttons: 8px.
 - Cards: 16px.
+- Buttons: 8px.
+- Inputs: 8px to 12px.
 - Avatars: 50%.
 
-## Elevation Rules
+### Critical Rule
 
-Use elevation to communicate hierarchy, not decoration.
+If a container is rounded, its content must respect that radius.
 
-- Base layer: no shadow.
-- Card: small shadow.
-- Modal: medium shadow.
-- Floating elements: large shadow.
+### Correct Use Cases
 
-## Component Rules
+- Images inside cards using the same radius.
+- Using `overflow-hidden` when needed.
 
-### Buttons
+### Incorrect Use Cases
 
-- Allow only one primary action per screen.
-- Supported variants: primary, secondary, tertiary.
-- Supported states: default, hover, active, disabled.
+- Rectangular images inside rounded cards.
+- Inconsistent radius values across similar elements.
 
-### Inputs
+### Example
 
-- Every input must have a label.
-- Do not rely on placeholder-only labels.
-- Reason: accessibility and clarity.
+Correct:
 
-### Lists
+```jsx
+<div className="rounded-2xl overflow-hidden">
+  <img className="rounded-t-2xl" src="/img.jpg" />
+</div>
+```
 
-Use lists for:
+Incorrect:
 
-- Repeated data.
-- Records.
-- Search results.
+```jsx
+<div className="rounded-2xl">
+  <img src="/img.jpg" />
+</div>
+```
+
+## Shadows
+
+### Principles
+
+- Shadow indicates hierarchy.
+- It should stay subtle.
+
+### Levels
+
+- Base: `none`
+- Card: `shadow-sm`
+- Hover: `shadow-md`
+- Modal: `shadow-lg`
+
+### Correct Use Cases
+
+- Cards with light shadow.
+- Hover states with subtle transitions.
+
+### Incorrect Use Cases
+
+- Heavy shadows.
+- Multiple stacked shadows.
+- Harsh black shadows.
+
+### Example
+
+Correct:
+
+```jsx
+<div className="shadow-sm hover:shadow-md transition"></div>
+```
+
+Incorrect:
+
+```html
+<div style="box-shadow: 0 10px 40px rgba(0,0,0,0.8)"></div>
+```
+
+## Components
 
 ### Cards
 
 Use cards for:
 
-- Grouping related content.
-- Product items.
-- Dashboard modules.
+- Grouping related information.
+- Dashboards.
+- Visual lists.
 
-## Interaction States
+Rules:
 
-Design for these states when relevant:
+- Keep internal padding consistent.
+- Keep clear separation between cards.
+- Use radius and shadow together to define the module.
+
+### Buttons
+
+Rules:
+
+- Allow one primary action per screen.
+- Define clear states.
+- Do not overload the interface with buttons.
+
+Supported states:
+
+- Default
+- Hover
+- Active
+- Disabled
+
+### Inputs
+
+Rules:
+
+- Always provide a label.
+- Never rely only on placeholders.
+- Make states clear and accessible.
+
+## Visual Elements
+
+### Rules
+
+- Use icons for actions.
+- Use charts for trends.
+- Use color for state.
+
+### Correct Use Cases
+
+- Use a chart to show growth or decline.
+- Use an icon for a quick action.
+
+### Incorrect Use Cases
+
+- Long text where a chart would communicate faster.
+- Decorative icons without function.
+
+## Highlighting
+
+### Rules
+
+- Highlight only what matters.
+- Use contrast, not saturation.
+
+### Methods
+
+- Color
+- Size
+- Background
+- Badge
+
+### Incorrect Use Cases
+
+- Highlighting everything.
+- Using multiple strong colors at once.
+
+## Interaction
+
+### States
 
 - Default
 - Hover
@@ -226,65 +415,53 @@ Design for these states when relevant:
 - Error
 - Success
 
-## Motion Rules
+### Rules
 
-- Animation must clarify a state change.
-- Avoid purely decorative animation.
-- Prefer durations of 150ms to 250ms.
-- Common patterns: hover feedback, dropdown expansion, accordion transitions, tab switching.
+- Every interactive element must provide feedback.
+- Hover transitions should be fast, usually 150ms to 250ms.
 
-## Accessibility Rules
+## Accessibility
 
-Always verify:
+### Rules
 
-- Contrast ratio.
-- Focus states.
-- Input labels.
-- Touch target size.
+- Maintain a minimum contrast ratio of 4.5:1.
+- Keep the minimum target size at 44px.
+- Every input must have a label.
+- Focus states must be visible.
 
-Minimum touch target size: 44px.
+## Implementation Guidance
 
-## Fallback Behavior
-
-If required design tokens are missing:
-
-1. Ask the user first.
-2. If there is no response, use default design tokens.
-
-## Output Requirements
-
-When using this skill, produce recommendations in this order:
+When using this skill, structure recommendations in this order:
 
 1. Existing project design system constraints.
 2. Missing information that must be confirmed.
-3. Proposed color, typography, spacing, radius, and elevation rules.
+3. Proposed rules for color, typography, spacing, radius, and shadows.
 4. Component behavior and interaction states.
 5. Accessibility checks.
 6. Fallback tokens only if project tokens are unavailable.
 
-## Default Fallback Tokens
+## Fallback Tokens
 
-Use these only if the project has no explicit tokens and the user does not provide them:
+Use these only if the project has no explicit tokens and the user does not provide them.
 
 ```css
 :root {
-  --space-1: 4px;
-  --space-2: 8px;
-  --space-3: 12px;
-  --space-4: 16px;
-  --space-5: 24px;
-  --space-6: 32px;
-  --space-7: 48px;
-  --space-8: 64px;
+  --space-4: 4px;
+  --space-8: 8px;
+  --space-12: 12px;
+  --space-16: 16px;
+  --space-24: 24px;
+  --space-32: 32px;
+  --space-48: 48px;
+  --space-64: 64px;
 
-  --radius-0: 0;
-  --radius-1: 4px;
-  --radius-2: 8px;
-  --radius-3: 16px;
-  --radius-4: 24px;
-  --radius-5: 48px;
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
 
   --font-family-base: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+
   --font-size-title-xxxl: 80px;
   --line-height-title-xxxl: 88px;
   --font-size-title-xxl: 64px;
@@ -307,3 +484,7 @@ Use these only if the project has no explicit tokens and the user does not provi
   --line-height-caption-small: 20px;
 }
 ```
+
+## Final Rule
+
+If an element does not communicate something useful, remove it or simplify it.
