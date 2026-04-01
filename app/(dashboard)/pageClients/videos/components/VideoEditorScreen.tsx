@@ -28,9 +28,9 @@ const VideoEditorScreen = ({ mode, initialVideo }: Props) => {
 
     return (
         <ContainerPage
-            eyebrow={copy.eyebrow}
+            // eyebrow={copy.eyebrow}
             title={copy.title}
-            description={copy.description}
+        //   description={copy.description}
         >
             <VideoForm
                 mode={mode}

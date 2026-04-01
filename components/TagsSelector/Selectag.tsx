@@ -1,10 +1,10 @@
 'use client'
 
 import { NextPage } from 'next'
-import { useEffect, useMemo, useState, useTransition } from 'react'
+import { useEffect, useMemo, useRef, useState, useTransition } from 'react'
 
 import { GetTags } from '@/database/actions/Tags/GetTags'
-import { dashboardChipSx, dashboardMenuPaperSx, dashboardSearchFieldSx, dashboardSelectSx } from '@/components/selectorStyles'
+import { compactChipSx, compactMenuPaperSx, compactSearchFieldSx, compactSelectSx, dashboardChipSx, dashboardMenuPaperSx, dashboardSearchFieldSx, dashboardSelectSx } from '@/components/selectorStyles'
 
 import {
     Select,
@@ -26,13 +26,16 @@ interface TagType {
 interface Props {
     selectedTags: TagType[]
     setSelectedTags: React.Dispatch<React.SetStateAction<TagType[]>>
+    uiVariant?: 'default' | 'compact'
 }
 
-const SelectTag: NextPage<Props> = ({ selectedTags, setSelectedTags }) => {
+const SelectTag: NextPage<Props> = ({ selectedTags, setSelectedTags, uiVariant = 'default' }) => {
 
     const [tags, setTags] = useState<TagType[]>([])
     const [search, setSearch] = useState('')
+    const [isOpen, setIsOpen] = useState(false)
     const [isPending, startTransition] = useTransition()
+    const searchInputRef = useRef<HTMLInputElement | null>(null)
 
     useEffect(() => {
         startTransition(async () => {
@@ -63,6 +66,11 @@ const SelectTag: NextPage<Props> = ({ selectedTags, setSelectedTags }) => {
         setSelectedTags(selectedTags.filter((t) => t._id !== id))
     }
 
+    const selectSx = uiVariant === 'compact' ? compactSelectSx : dashboardSelectSx
+    const menuPaperSx = uiVariant === 'compact' ? compactMenuPaperSx : dashboardMenuPaperSx
+    const searchFieldSx = uiVariant === 'compact' ? compactSearchFieldSx : dashboardSearchFieldSx
+    const chipSx = uiVariant === 'compact' ? compactChipSx : dashboardChipSx
+
     return (
         <Box>
 
@@ -72,25 +80,43 @@ const SelectTag: NextPage<Props> = ({ selectedTags, setSelectedTags }) => {
                 fullWidth
                 value={selectedTags.map((t) => t._id)}
                 displayEmpty
+                open={isOpen}
+                onOpen={() => setIsOpen(true)}
+                onClose={() => setIsOpen(false)}
                 renderValue={(selected) => {
                     const values = selected as string[]
                     return values.length === 0 ? 'Seleccionar tags' : `${values.length} tags seleccionados`
                 }}
-                sx={dashboardSelectSx}
+                sx={selectSx}
                 MenuProps={{
+                    autoFocus: false,
+                    disableAutoFocusItem: true,
+                    MenuListProps: {
+                        autoFocusItem: false,
+                    },
+                    TransitionProps: {
+                        onEntered: () => {
+                            searchInputRef.current?.focus()
+                        }
+                    },
                     PaperProps: {
-                        sx: { ...dashboardMenuPaperSx, maxHeight: 350 }
+                        sx: { ...menuPaperSx, maxHeight: 350 }
                     }
                 }}
             >
 
-                <ListSubheader>
+                <ListSubheader
+                    disableSticky
+                    onMouseDown={(event) => event.stopPropagation()}
+                    onClick={(event) => event.stopPropagation()}
+                >
                     <TextField
                         size="small"
-                        autoFocus
+                        inputRef={searchInputRef}
+                        value={search}
                         placeholder="Buscar tag..."
                         fullWidth
-                        sx={dashboardSearchFieldSx}
+                        sx={searchFieldSx}
                         onChange={(e) => setSearch(e.target.value)}
                         onKeyDown={(e) => e.stopPropagation()}
                     />
@@ -137,7 +163,7 @@ const SelectTag: NextPage<Props> = ({ selectedTags, setSelectedTags }) => {
                         color='primary'
                         label={tag.name}
                         onDelete={() => handleDelete(tag._id)}
-                        sx={dashboardChipSx}
+                        sx={chipSx}
                     />
                 ))}
             </Box>

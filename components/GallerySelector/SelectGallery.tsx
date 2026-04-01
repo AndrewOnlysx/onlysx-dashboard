@@ -1,21 +1,24 @@
 'use client'
 
-import { useEffect, useState, useTransition } from 'react'
+import { useEffect, useMemo, useRef, useState, useTransition } from 'react'
 import { Avatar, Box, Checkbox, Chip, CircularProgress, ListSubheader, MenuItem, Select, TextField, Typography } from '@mui/material'
 
 import { GetAllGalery } from '@/database/actions/galeries/GetAllGallery'
-import { dashboardChipSx, dashboardMenuPaperSx, dashboardSearchFieldSx, dashboardSelectSx } from '@/components/selectorStyles'
+import { compactChipSx, compactMenuPaperSx, compactSearchFieldSx, compactSelectSx, dashboardChipSx, dashboardMenuPaperSx, dashboardSearchFieldSx, dashboardSelectSx } from '@/components/selectorStyles'
 import { GalleryType } from '@/types/Types'
 
 interface Props {
     selectedGaleries: GalleryType[]
     setSelectedGaleries: React.Dispatch<React.SetStateAction<GalleryType[]>>
+    uiVariant?: 'default' | 'compact'
 }
 
-const SelectGallery = ({ selectedGaleries, setSelectedGaleries }: Props) => {
+const SelectGallery = ({ selectedGaleries, setSelectedGaleries, uiVariant = 'default' }: Props) => {
     const [galeries, setGaleries] = useState<GalleryType[]>([])
     const [search, setSearch] = useState('')
+    const [isOpen, setIsOpen] = useState(false)
     const [isPending, startTransition] = useTransition()
+    const searchInputRef = useRef<HTMLInputElement | null>(null)
 
     useEffect(() => {
         startTransition(async () => {
@@ -24,9 +27,9 @@ const SelectGallery = ({ selectedGaleries, setSelectedGaleries }: Props) => {
         })
     }, [])
 
-    const filteredGaleries = galeries.filter((gallery) =>
+    const filteredGaleries = useMemo(() => galeries.filter((gallery) =>
         gallery.name.toLowerCase().includes(search.toLowerCase())
-    )
+    ), [galeries, search])
 
     const handleToggle = (gallery: GalleryType) => {
         const exists = selectedGaleries.find((item) => item._id === gallery._id)
@@ -43,6 +46,11 @@ const SelectGallery = ({ selectedGaleries, setSelectedGaleries }: Props) => {
         setSelectedGaleries(selectedGaleries.filter((item) => item._id !== galleryId))
     }
 
+    const selectSx = uiVariant === 'compact' ? compactSelectSx : dashboardSelectSx
+    const menuPaperSx = uiVariant === 'compact' ? compactMenuPaperSx : dashboardMenuPaperSx
+    const searchFieldSx = uiVariant === 'compact' ? compactSearchFieldSx : dashboardSearchFieldSx
+    const chipSx = uiVariant === 'compact' ? compactChipSx : dashboardChipSx
+
     return (
         <Box>
             <Select
@@ -50,24 +58,42 @@ const SelectGallery = ({ selectedGaleries, setSelectedGaleries }: Props) => {
                 fullWidth
                 value={selectedGaleries.map((gallery) => gallery._id)}
                 displayEmpty
+                open={isOpen}
+                onOpen={() => setIsOpen(true)}
+                onClose={() => setIsOpen(false)}
                 renderValue={(selected) => {
                     const values = selected as string[]
                     return values.length === 0 ? 'Seleccionar galerias' : `${values.length} galerias seleccionadas`
                 }}
-                sx={dashboardSelectSx}
+                sx={selectSx}
                 MenuProps={{
+                    autoFocus: false,
+                    disableAutoFocusItem: true,
+                    MenuListProps: {
+                        autoFocusItem: false,
+                    },
+                    TransitionProps: {
+                        onEntered: () => {
+                            searchInputRef.current?.focus()
+                        }
+                    },
                     PaperProps: {
-                        sx: { ...dashboardMenuPaperSx, maxHeight: 360 }
+                        sx: { ...menuPaperSx, maxHeight: 360 }
                     }
                 }}
             >
-                <ListSubheader>
+                <ListSubheader
+                    disableSticky
+                    onMouseDown={(event) => event.stopPropagation()}
+                    onClick={(event) => event.stopPropagation()}
+                >
                     <TextField
                         size="small"
-                        autoFocus
+                        inputRef={searchInputRef}
+                        value={search}
                         fullWidth
                         placeholder="Buscar galeria..."
-                        sx={dashboardSearchFieldSx}
+                        sx={searchFieldSx}
                         onChange={(event) => setSearch(event.target.value)}
                         onKeyDown={(event) => event.stopPropagation()}
                     />
@@ -109,7 +135,7 @@ const SelectGallery = ({ selectedGaleries, setSelectedGaleries }: Props) => {
                         avatar={<Avatar src={gallery.images?.[0]?.url} variant="rounded" />}
                         label={gallery.name}
                         onDelete={() => handleDelete(gallery._id)}
-                        sx={dashboardChipSx}
+                        sx={chipSx}
                     />
                 ))}
             </Box>

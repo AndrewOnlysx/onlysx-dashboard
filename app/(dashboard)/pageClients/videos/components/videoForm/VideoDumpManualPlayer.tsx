@@ -6,6 +6,7 @@ import { formatDurationClock } from '@/lib/videos/admin'
 
 import { PREVIEW_GAP_MS, seekTo, sleep, waitForMetadata } from './dumpPlayback'
 import type { PreviewWindow } from './utils'
+import { videoFormPrimaryActionClassName, videoFormSecondaryActionClassName } from './videoFormUi'
 
 interface Props {
     src: string
@@ -104,8 +105,8 @@ const VideoDumpManualPlayer = ({ src, previewWindows, poster }: Props) => {
 
     return (
         <div className="space-y-4">
-            <div className="overflow-hidden rounded-[24px] border border-white/10 bg-black/40">
-                <div className="aspect-video bg-zinc-900">
+            <div className="overflow-hidden rounded-[6px] border border-[#262c35] bg-[#0d1015]">
+                <div className="aspect-video bg-[#0d1015]">
                     {src ? (
                         <video
                             ref={videoRef}
@@ -117,7 +118,7 @@ const VideoDumpManualPlayer = ({ src, previewWindows, poster }: Props) => {
                             preload="metadata"
                         />
                     ) : (
-                        <div className="flex h-full items-center justify-center px-6 text-center text-sm text-zinc-500">
+                        <div className="flex h-full items-center justify-center px-6 text-center text-sm text-[#8f97a8]">
                             Sube el video para desbloquear el reproductor manual del dump.
                         </div>
                     )}
@@ -129,7 +130,7 @@ const VideoDumpManualPlayer = ({ src, previewWindows, poster }: Props) => {
                     type="button"
                     onClick={() => startPlayback()}
                     disabled={!hasPreview}
-                    className="primary-action disabled:cursor-not-allowed disabled:opacity-40"
+                    className={videoFormPrimaryActionClassName}
                 >
                     {isPlaying ? 'Reiniciar dump' : 'Reproducir dump'}
                 </button>
@@ -137,11 +138,11 @@ const VideoDumpManualPlayer = ({ src, previewWindows, poster }: Props) => {
                     type="button"
                     onClick={stopPlayback}
                     disabled={!hasPreview || !isPlaying}
-                    className="secondary-action disabled:cursor-not-allowed disabled:opacity-40"
+                    className={videoFormSecondaryActionClassName}
                 >
                     Detener
                 </button>
-                <span className="muted-pill">
+                <span className="inline-flex items-center justify-center rounded-[6px] border border-[#303640] bg-[#171b22] px-2 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#aeb7c6]">
                     {previewWindows.length > 0 ? `${previewWindows.length} snippets` : 'Sin snippets'}
                 </span>
             </div>
@@ -153,9 +154,9 @@ const VideoDumpManualPlayer = ({ src, previewWindows, poster }: Props) => {
                         type="button"
                         onClick={() => startPlayback(index)}
                         disabled={!src}
-                        className={`rounded-full px-3 py-1.5 text-xs transition ${activeIndex === index
-                            ? 'border border-cyan-400/20 bg-cyan-400/10 text-cyan-100'
-                            : 'border border-white/10 bg-white/5 text-zinc-300 hover:bg-white/10'
+                        className={`rounded-[6px] border px-3 py-1.5 text-xs font-medium transition ${activeIndex === index
+                            ? 'border-[#6b2f52] bg-[#27111e] text-[#ff8ecb]'
+                            : 'border-[#303640] bg-[#171b22] text-[#aeb7c6] hover:border-[var(--primary)] hover:text-[#f5f7fb]'
                             }`}
                     >
                         {formatDurationClock(window.start)} - {formatDurationClock(window.end)}
@@ -164,7 +165,7 @@ const VideoDumpManualPlayer = ({ src, previewWindows, poster }: Props) => {
             </div>
 
             {playbackError && (
-                <p className="text-sm text-rose-300">{playbackError}</p>
+                <p className="text-sm text-[#ff9ca4]">{playbackError}</p>
             )}
         </div>
     )

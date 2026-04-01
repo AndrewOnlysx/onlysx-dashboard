@@ -1,4 +1,5 @@
 import { formatFileSize } from './utils'
+import { getVideoFormBadgeClassName, getVideoFormProgressClassName, type VideoFormTone, videoFormInsetClassName, videoFormMutedTextClassName } from './videoFormUi'
 
 interface UploadState {
     status: 'idle' | 'uploading' | 'processing' | 'success' | 'error'
@@ -55,31 +56,40 @@ const AssetUploadStatus = ({ title, file, state, emptyMessage }: Props) => {
             : state.status === 'uploading'
                 ? 'Transferencia activa.'
                 : 'Sin actividad todavia.'
+    const tone: VideoFormTone = state.status === 'success'
+        ? 'success'
+        : state.status === 'error'
+            ? 'danger'
+            : state.status === 'processing'
+                ? 'warning'
+                : state.status === 'uploading'
+                    ? 'accent'
+                    : 'neutral'
 
     return (
-        <div className="editor-subpanel p-4">
+        <div className={videoFormInsetClassName}>
             <div className="flex items-start justify-between gap-3">
-                <div>
-                    <p className="text-sm font-semibold text-white">{title}</p>
-                    <p className="mt-1 text-sm text-zinc-400">{primaryMessage}</p>
+                <div className="min-w-0">
+                    <p className="text-[14px] font-semibold text-[#f5f7fb]">{title}</p>
+                    <p className="mt-1 break-all text-[13px] leading-5 text-[#c1c8d3]">{primaryMessage}</p>
                 </div>
-                <span className={`rounded-full px-3 py-1 text-[11px] uppercase tracking-[0.22em] ${STATUS_STYLES[state.status]}`}>
+                <span className={getVideoFormBadgeClassName(tone)}>
                     {STATUS_LABELS[state.status]}
                 </span>
             </div>
 
-            <p className="mt-3 text-sm leading-6 text-zinc-500">
+            <p className={`mt-3 ${videoFormMutedTextClassName}`}>
                 {secondaryMessage}
             </p>
 
-            <div className="mt-4 h-2 overflow-hidden rounded-full bg-white/8">
+            <div className="mt-4 h-2 overflow-hidden rounded-[6px] bg-[#242932]">
                 <div
-                    className={`h-full rounded-full transition-all ${state.status === 'error' ? 'bg-rose-400' : 'bg-[var(--primary)]'}`}
+                    className={getVideoFormProgressClassName(tone === 'neutral' ? 'accent' : tone as Exclude<VideoFormTone, 'neutral'>)}
                     style={{ width: `${progressWidth}%` }}
                 />
             </div>
 
-            <div className="mt-3 flex flex-wrap items-center justify-between gap-3 text-xs text-zinc-400">
+            <div className="mt-3 flex flex-wrap items-center justify-between gap-3 text-xs text-[#8f97a8]">
                 <span>
                     {state.status === 'processing' && state.totalBytes > 0
                         ? `${formatFileSize(state.totalBytes)} recibidos por el servidor`
@@ -101,7 +111,7 @@ const AssetUploadStatus = ({ title, file, state, emptyMessage }: Props) => {
             </div>
 
             {state.error && (
-                <p className="mt-3 text-sm text-rose-300">{state.error}</p>
+                <p className="mt-3 text-sm text-[#ff9ca4]">{state.error}</p>
             )}
         </div>
     )

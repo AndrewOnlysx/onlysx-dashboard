@@ -2,10 +2,10 @@
 
 import { ModelType } from '@/types/Types'
 import { NextPage } from 'next'
-import { useEffect, useState, useTransition, useMemo } from 'react'
+import { useEffect, useMemo, useRef, useState, useTransition } from 'react'
 
 import { GetModels } from '@/database/actions/models/GetModels'
-import { dashboardChipSx, dashboardMenuPaperSx, dashboardSearchFieldSx, dashboardSelectSx } from '@/components/selectorStyles'
+import { compactChipSx, compactMenuPaperSx, compactSearchFieldSx, compactSelectSx, dashboardChipSx, dashboardMenuPaperSx, dashboardSearchFieldSx, dashboardSelectSx } from '@/components/selectorStyles'
 
 import {
     Select,
@@ -23,13 +23,16 @@ import {
 interface Props {
     selectedModels: ModelType[]
     setSelectedModels: React.Dispatch<React.SetStateAction<ModelType[]>>
+    uiVariant?: 'default' | 'compact'
 }
 
-const SelectModel: NextPage<Props> = ({ selectedModels, setSelectedModels }) => {
+const SelectModel: NextPage<Props> = ({ selectedModels, setSelectedModels, uiVariant = 'default' }) => {
 
     const [models, setModels] = useState<ModelType[]>([])
     const [search, setSearch] = useState('')
+    const [isOpen, setIsOpen] = useState(false)
     const [isPending, startTransition] = useTransition()
+    const searchInputRef = useRef<HTMLInputElement | null>(null)
 
     useEffect(() => {
         startTransition(async () => {
@@ -60,6 +63,11 @@ const SelectModel: NextPage<Props> = ({ selectedModels, setSelectedModels }) => 
         setSelectedModels(selectedModels.filter((m) => m._id !== id))
     }
 
+    const selectSx = uiVariant === 'compact' ? compactSelectSx : dashboardSelectSx
+    const menuPaperSx = uiVariant === 'compact' ? compactMenuPaperSx : dashboardMenuPaperSx
+    const searchFieldSx = uiVariant === 'compact' ? compactSearchFieldSx : dashboardSearchFieldSx
+    const chipSx = uiVariant === 'compact' ? compactChipSx : dashboardChipSx
+
     return (
         <Box>
 
@@ -68,25 +76,43 @@ const SelectModel: NextPage<Props> = ({ selectedModels, setSelectedModels }) => 
                 fullWidth
                 value={selectedModels.map((m) => m._id)}
                 displayEmpty
+                open={isOpen}
+                onOpen={() => setIsOpen(true)}
+                onClose={() => setIsOpen(false)}
                 renderValue={(selected) => {
                     const values = selected as string[]
                     return values.length === 0 ? 'Seleccionar modelos' : `${values.length} modelos seleccionados`
                 }}
-                sx={dashboardSelectSx}
+                sx={selectSx}
                 MenuProps={{
+                    autoFocus: false,
+                    disableAutoFocusItem: true,
+                    MenuListProps: {
+                        autoFocusItem: false,
+                    },
+                    TransitionProps: {
+                        onEntered: () => {
+                            searchInputRef.current?.focus()
+                        }
+                    },
                     PaperProps: {
-                        sx: { ...dashboardMenuPaperSx, maxHeight: 350 }
+                        sx: { ...menuPaperSx, maxHeight: 350 }
                     }
                 }}
             >
 
-                <ListSubheader>
+                <ListSubheader
+                    disableSticky
+                    onMouseDown={(event) => event.stopPropagation()}
+                    onClick={(event) => event.stopPropagation()}
+                >
                     <TextField
                         size="small"
-                        autoFocus
+                        inputRef={searchInputRef}
+                        value={search}
                         placeholder="Buscar modelo..."
                         fullWidth
-                        sx={dashboardSearchFieldSx}
+                        sx={searchFieldSx}
                         onChange={(e) => setSearch(e.target.value)}
                         onKeyDown={(e) => e.stopPropagation()}
                     />
@@ -147,7 +173,7 @@ const SelectModel: NextPage<Props> = ({ selectedModels, setSelectedModels }) => 
                         avatar={<Avatar src={model.image} />}
                         label={model.name}
                         onDelete={() => handleDelete(model._id)}
-                        sx={dashboardChipSx}
+                        sx={chipSx}
                     />
                 ))}
             </Box>

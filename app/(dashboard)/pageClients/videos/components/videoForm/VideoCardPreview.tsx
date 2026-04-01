@@ -4,6 +4,7 @@ import { formatCompactNumber } from '@/lib/videos/admin'
 
 import type { UseVideoFormResult } from './useVideoForm'
 import VideoHoverPreview from './VideoHoverPreview'
+import { getVideoFormBadgeClassName } from './videoFormUi'
 
 interface Props {
     preview: UseVideoFormResult['preview']
@@ -14,8 +15,8 @@ const VideoCardPreview = ({ preview }: Props) => {
     const extraModels = Math.max(preview.selectedModels.length - 1, 0)
 
     return (
-        <div className="overflow-hidden rounded-[14px] border border-[var(--border)] bg-[rgba(23,27,34,0.92)] shadow-[0_14px_32px_rgba(0,0,0,0.18)]">
-            <div className="relative overflow-hidden border-b border-[var(--border)] bg-[rgba(255,255,255,0.02)]">
+        <div className="overflow-hidden rounded-[6px] border border-[#262c35] bg-[#11151b] shadow-none">
+            <div className="relative overflow-hidden border-b border-[#262c35] bg-[#0d1015]">
                 <div className="relative h-0 w-full pb-[56.25%]">
                     {preview.activeCoverUrl ? (
                         <img
@@ -24,7 +25,7 @@ const VideoCardPreview = ({ preview }: Props) => {
                             className="absolute inset-0 h-full w-full object-cover"
                         />
                     ) : (
-                        <div className="absolute inset-0 flex items-center justify-center bg-[rgba(15,18,24,0.9)] px-6 text-center text-sm text-zinc-500">
+                        <div className="absolute inset-0 flex items-center justify-center bg-[#0d1015] px-6 text-center text-sm text-[#8f97a8]">
                             La portada horizontal aparecera aqui.
                         </div>
                     )}
@@ -36,7 +37,7 @@ const VideoCardPreview = ({ preview }: Props) => {
                         />
                     )}
 
-                    <span className="absolute bottom-2 right-2 rounded-md border border-white/10 bg-[rgba(15,18,24,0.82)] px-2 py-1 text-[11px] font-medium tracking-[0.01em] text-white backdrop-blur-sm">
+                    <span className="absolute bottom-2 right-2 rounded-[6px] border border-[#303640] bg-[#11151b] px-2 py-1 text-[11px] font-medium tracking-[0.01em] text-[#f5f7fb]">
                         {preview.time || '00:00'}
                     </span>
                 </div>
@@ -44,20 +45,20 @@ const VideoCardPreview = ({ preview }: Props) => {
 
             <div className="flex flex-col gap-3 p-3.5">
                 <div className="flex items-start justify-between gap-3">
-                    <span className="rounded-md border border-white/8 bg-white/[0.03] px-2 py-1 text-[11px] font-medium tracking-[0.01em] text-[var(--muted-foreground)]">
+                    <span className={getVideoFormBadgeClassName('neutral')}>
                         Card preview
                     </span>
-                    <span className="rounded-md border border-white/8 bg-white/[0.03] px-2 py-1 text-[11px] font-medium tracking-[0.01em] text-[var(--muted-foreground)]">
+                    <span className={getVideoFormBadgeClassName('accent')}>
                         {preview.currentQuality || 'Sin calidad'}
                     </span>
                 </div>
 
-                <p className="truncate text-[15px] font-semibold leading-5 text-white">
+                <p className="break-words text-[15px] font-semibold leading-5 text-[#f5f7fb]">
                     {preview.title || 'Nuevo video sin titulo'}
                 </p>
 
                 {primaryModel && (
-                    <div className="flex items-center gap-2.5 text-sm text-[var(--muted-foreground)]">
+                    <div className="flex items-center gap-2.5 text-sm text-[#c1c8d3]">
                         <img
                             src={primaryModel.image}
                             alt={primaryModel.name}
@@ -65,28 +66,28 @@ const VideoCardPreview = ({ preview }: Props) => {
                         />
                         <span className="truncate">{primaryModel.name}</span>
                         {extraModels > 0 && (
-                            <span className="rounded-md border border-white/8 bg-white/[0.03] px-2 py-1 text-[11px] text-zinc-300">
+                            <span className="rounded-[6px] border border-[#303640] bg-[#171b22] px-2 py-1 text-[11px] text-[#aeb7c6]">
                                 +{extraModels}
                             </span>
                         )}
                     </div>
                 )}
 
-                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px] text-[var(--muted-foreground)]">
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px] text-[#8f97a8]">
                     <span>{formatCompactNumber(preview.views)} views</span>
-                    <span className="h-1 w-1 rounded-full bg-[rgba(255,255,255,0.18)]" aria-hidden="true" />
+                    <span className="h-1 w-1 rounded-full bg-[#47505d]" aria-hidden="true" />
                     <span>{preview.previewWindows.length > 0 ? `${preview.previewWindows.length} snippets` : 'Sin dump'}</span>
                 </div>
 
                 <div className="mt-auto flex flex-wrap gap-1.5">
                     {preview.selectedTags.length === 0 && (
-                        <span className="text-xs text-zinc-500">Sin tags todavia.</span>
+                        <span className="text-xs text-[#6f7888]">Sin tags todavia.</span>
                     )}
 
                     {preview.selectedTags.slice(0, 3).map((tag) => (
                         <span
                             key={tag._id}
-                            className="rounded-md border border-white/8 bg-white/[0.02] px-2 py-1 text-[11px] text-[var(--muted-foreground)]"
+                            className="rounded-[6px] border border-[#303640] bg-[#171b22] px-2 py-1 text-[11px] text-[#aeb7c6]"
                         >
                             #{tag.name}
                         </span>
