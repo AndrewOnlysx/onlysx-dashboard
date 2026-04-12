@@ -16,6 +16,7 @@ import {
 
 interface ModelFormData {
     _id: string
+    slug: string
     name: string
     image?: string
 }
@@ -106,12 +107,12 @@ const ModelForm = ({ mode, model }: Props) => {
 
             const payload = await response.json().catch(() => null)
 
-            if (!response.ok || !payload?.ok || !payload?.model?._id) {
+            if (!response.ok || !payload?.ok || !payload?.model?._id || !payload?.model?.slug) {
                 throw new Error(payload?.message || "No se pudo guardar el modelo.")
             }
 
             router.refresh()
-            router.push(`/pageClients/models/view/${payload.model._id}`)
+            router.push(`/pageClients/models/view/${payload.model.slug}`)
         } catch (error) {
             setFormError(error instanceof Error ? error.message : "No se pudo guardar el modelo.")
         } finally {

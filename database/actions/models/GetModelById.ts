@@ -4,66 +4,47 @@ import { Galeries } from '@/database/models/Galeries'
 import { Models } from '@/database/models/Models'
 import { Video } from '@/database/models/Video'
 import { connectDB } from '@/database/utils/mongodb'
+import { buildSlugLookup, syncMissingSlugs } from '@/database/utils/slug'
 import '@/database/models/Tags'
-import { ok } from 'assert'
 
-import mongoose from 'mongoose'
-
-export default async function GetModelFullProfile(modelId: string) {
-    if (!mongoose.Types.ObjectId.isValid(modelId)) {
-        throw new Error('Invalid model id')
-    }
+export default async function GetModelFullProfile(modelSlug: string) {
     try {
-        await connectDB() // Aseguramos conexión a DB
+        await connectDB()
+        await syncMissingSlugs(Models, 'name')
+        await syncMissingSlugs(Video, 'title')
+        await syncMissingSlugs(Galeries, 'name')
 
-        const objectId = new mongoose.Types.ObjectId(modelId)
-
-        // 🔥 Ejecutamos todo en paralelo
-        const [
-            model,
-            videos,
-            galeries,
-            totalVideos,
-            totalGaleries
-        ] = await Promise.all([
-            Models.findById(objectId).lean(),
-
-            Video.find({ models: objectId })
-                .sort({ createdAt: -1 }).populate('models').populate('tags')
-                .select('-dump') // opcional si no quieres traer peso innecesario
-                .lean(),
-
-            Galeries.find({ idModel: objectId })
-                .sort({ createdAt: -1 })
-                .lean(),
-
-            Video.countDocuments({ models: objectId }),
-
-            Galeries.countDocuments({ idModel: objectId })
-        ])
+        const model = await Models.findOne(buildSlugLookup(modelSlug)).lean()
 
         if (!model) {
             throw new Error('Model not found')
         }
 
-        // 🔥 Calcular total de views del creador
+        const [
+            videos,
+            galeries,
+            totalVideos,
+            totalGaleries
+        ] = await Promise.all([
+            Video.find({ models: model._id })
+                .sort({ createdAt: -1 }).populate('models').populate('tags')
+                .select('-dump')
+                .lean(),
+
+            Galeries.find({ idModel: model._id })
+                .sort({ createdAt: -1 })
+                .lean(),
+
+            Video.countDocuments({ models: model._id }),
+
+            Galeries.countDocuments({ idModel: model._id })
+        ])
+
         const totalViews = videos.reduce(
             (acc, video) => acc + (video.views || 0),
             0
         )
-        const data = {
 
-            ok: true,
-            model,
-            stats: {
-                totalVideos,
-                totalGaleries,
-                totalViews
-            },
-            videos,
-            galeries,
-            message: 'Model profile fetched successfully'
-        }
         return {
             ok: true,
             model: JSON.parse(JSON.stringify(model)),

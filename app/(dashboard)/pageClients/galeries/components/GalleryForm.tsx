@@ -30,6 +30,7 @@ const sortImagesByFilename = <T extends { filename: string }>(images: T[]) => {
 
 interface GalleryFormGallery {
     _id: string
+    slug: string
     idTags: Array<string | TagType>
     idModel: Array<string | ModelType>
     idRelatedVideo?: string | { _id: string } | null
@@ -129,10 +130,14 @@ const GalleryForm: NextPage<Props> = ({ mode, gallery }) => {
                 const dataWhitNameAndStatus = uploads.flatMap((response) => response.data)
                 const sortedImages = sortImagesByFilename([...images, ...dataWhitNameAndStatus])
 
-                await EditGallery({
+                const result = await EditGallery({
                     galleryId: gallery._id,
                     images: sortedImages
                 })
+
+                if (!result.ok) {
+                    throw new Error(result.message)
+                }
 
                 setImages(sortedImages)
                 router.refresh()
@@ -180,17 +185,17 @@ const GalleryForm: NextPage<Props> = ({ mode, gallery }) => {
             const formData = new FormData()
             formData.append('images', file)
 
-            const result = await fetch('/api/galeries/uploadFiles', {
+            const uploadResult = await fetch('/api/galeries/uploadFiles', {
                 method: 'POST',
                 body: formData
             })
 
-            if (!result.ok) {
+            if (!uploadResult.ok) {
                 alert('Error subiendo la imagen')
                 return
             }
 
-            const response: { data?: Array<{ filename: string, status: string, url: string }> } = await result.json()
+            const response: { data?: Array<{ filename: string, status: string, url: string }> } = await uploadResult.json()
             const uploadedImage = response.data?.[0]
 
             if (!uploadedImage) {
@@ -210,10 +215,14 @@ const GalleryForm: NextPage<Props> = ({ mode, gallery }) => {
             )
             const sortedImages = sortImagesByFilename(updatedImages)
 
-            await EditGallery({
+            const updateResult = await EditGallery({
                 galleryId: gallery._id,
                 images: sortedImages
             })
+
+            if (!updateResult.ok) {
+                throw new Error(updateResult.message)
+            }
 
             setImages(sortedImages)
             router.refresh()
@@ -236,10 +245,14 @@ const GalleryForm: NextPage<Props> = ({ mode, gallery }) => {
         try {
             const updatedImages = sortImagesByFilename(images.filter((_, i) => i !== index))
 
-            await EditGallery({
+            const result = await EditGallery({
                 galleryId: gallery._id,
                 images: updatedImages
             })
+
+            if (!result.ok) {
+                throw new Error(result.message)
+            }
 
             setImages(updatedImages)
             router.refresh()
@@ -269,19 +282,28 @@ const GalleryForm: NextPage<Props> = ({ mode, gallery }) => {
 
         try {
             if (isEdit && gallery) {
-                await EditGallery({
+                const result = await EditGallery({
                     galleryId: gallery._id,
                     ...payload
                 })
 
+                if (!result.ok || !result.gallery?.slug) {
+                    throw new Error(result.message || 'No se pudo actualizar la galeria')
+                }
+
                 alert('Galería actualizada con éxito')
                 router.refresh()
+                router.push(`/pageClients/galeries/edit/${result.gallery.slug}`)
             } else {
-                await CreateGallery(payload)
+                const result = await CreateGallery(payload)
+
+                if (!result.ok || !result.gallery?.slug) {
+                    throw new Error(result.message || 'No se pudo crear la galeria')
+                }
+
                 alert('Galería creada con éxito')
-                window.setTimeout(() => {
-                    window.location.href = '/pageClients/galeries'
-                }, 1000)
+                router.refresh()
+                router.push(`/pageClients/galeries/edit/${result.gallery.slug}`)
             }
         } catch (error) {
             console.error(`Error ${isEdit ? 'actualizando' : 'creando'} galería:`, error)

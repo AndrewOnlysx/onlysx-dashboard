@@ -1,13 +1,16 @@
 'use server'
 import { connectDB } from "@/database/utils/mongodb"
 import { Galeries } from "@/database/models/Galeries"
+import { buildSlugLookup, syncMissingSlugs } from '@/database/utils/slug'
 import "@/database/models/Models"
 import "@/database/models/Tags"
 import "@/database/models/Video"
-export const GetGaleriesById = async (id: string) => {
+export const GetGaleriesBySlug = async (slug: string) => {
     try {
         await connectDB()
-        const res = await Galeries.findById(id)
+        await syncMissingSlugs(Galeries, 'name')
+
+        const res = await Galeries.findOne(buildSlugLookup(slug))
             .populate("idTags")
             .populate("idModel")
             .populate("idRelatedVideo")
@@ -18,3 +21,5 @@ export const GetGaleriesById = async (id: string) => {
         return { galeries: [], ok: false }
     }
 }
+
+export const GetGaleriesById = GetGaleriesBySlug

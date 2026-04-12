@@ -1,5 +1,6 @@
 export interface Gallery {
     _id: string
+    slug: string
     idTags: string[]
     idModel: string[]
     idRelatedVideo: string

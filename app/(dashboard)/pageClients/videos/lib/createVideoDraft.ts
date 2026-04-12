@@ -62,6 +62,7 @@ export const submitCreateVideoDraft = async (draft: VideoDraftSubmission) => {
     console.log('[videos-admin] video guardado en base de datos', {
         mode,
         id: result.video?._id,
+        slug: result.video?.slug,
         title: payload.title,
         assets
     })

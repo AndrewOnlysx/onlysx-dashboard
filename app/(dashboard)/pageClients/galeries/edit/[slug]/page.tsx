@@ -3,13 +3,13 @@ import { NextPage } from 'next'
 import GalleryForm from '../../components/GalleryForm'
 
 interface Props {
-    params: Promise<{ id: string }>
+    params: Promise<{ slug: string }>
 }
 
 
 const Page: NextPage<Props> = async ({ params }) => {
-    const { id } = await params
-    const { galeries } = await GetGaleriesById(id)
+    const { slug } = await params
+    const { galeries } = await GetGaleriesById(slug)
     return <GalleryForm mode="edit" gallery={galeries} />
 }
 

@@ -113,7 +113,7 @@ const GaleryViewer: NextPage<Props> = ({
                             </div>
 
                             <Link
-                                href={`/pageClients/galeries/edit/${gallery._id}`}
+                                href={`/pageClients/galeries/edit/${gallery.slug}`}
                                 onClick={(e) => e.stopPropagation()}
                                 className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition"
                             >

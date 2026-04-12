@@ -11,15 +11,15 @@ import { VideoType } from '@/types/Types'
 import GaleryView from '@/components/Gallery/GaleryView'
 
 type PageProps = {
-    params: Promise<{ id: string }>
+    params: Promise<{ slug: string }>
     searchParams?: Promise<{ tab?: string }>
 }
 
 const Page = async ({ params, searchParams }: PageProps) => {
-    const { id } = await params
+    const { slug } = await params
     const tab = searchParams ? (await searchParams).tab : 'videos'
 
-    const { model, stats, videos, galeries } = await GetModelById(id)
+    const { model, stats, videos, galeries } = await GetModelById(slug)
     const isVideos = tab === 'videos'
     const metricCards = [
         {
@@ -47,7 +47,7 @@ const Page = async ({ params, searchParams }: PageProps) => {
             eyebrow="Model profile"
             title={model.name}
             description={`${(stats as any).totalVideos} videos · ${(stats as any).totalGaleries} galerias · ${(stats as any).totalViews?.toLocaleString()} views acumuladas`}
-            actions={<Link href={`/pageClients/models/${model._id}`} className="primary-action">Editar modelo</Link>}
+            actions={<Link href={`/pageClients/models/${model.slug}`} className="primary-action">Editar modelo</Link>}
         >
             <div className="grid gap-6 xl:grid-cols-[340px_minmax(0,1fr)]">
                 <section className="surface-panel overflow-hidden">

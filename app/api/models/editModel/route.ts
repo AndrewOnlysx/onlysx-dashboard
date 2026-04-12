@@ -145,7 +145,7 @@ export async function PUT(
             imageUrl = uploadedImageUrl
         }
 
-        model.name = name
+        model.name = name.trim()
         model.image = imageUrl
 
         await model.save()

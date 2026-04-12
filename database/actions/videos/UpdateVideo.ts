@@ -39,7 +39,7 @@ export const UpdateVideo = async (input: UpdateVideoInput) => {
         const tagIds = ensureObjectIds(parsedInput.tags, 'tags')
         const galerieIds = ensureObjectIds(parsedInput.galeries, 'galeries')
 
-        const existingVideo = await Video.findById(videoObjectId).lean()
+        const existingVideo = await Video.findById(videoObjectId)
 
         if (!existingVideo) {
             return {
@@ -63,24 +63,20 @@ export const UpdateVideo = async (input: UpdateVideoInput) => {
                 manualSearchParams: parsedInput.manualSearchParams
             })
 
-        await Video.findByIdAndUpdate(
-            videoObjectId,
-            {
-                title: parsedInput.title,
-                time: parsedInput.time,
-                image: parsedInput.image,
-                video: parsedInput.video,
-                dump: parsedInput.dump,
-                quality: parsedInput.quality,
-                models: modelIds,
-                tags: tagIds,
-                galeries: galerieIds,
-                views: parsedInput.views,
-                lastViews: parsedInput.lastViews,
-                searchPrarms
-            },
-            { new: true }
-        )
+        existingVideo.title = parsedInput.title
+        existingVideo.time = parsedInput.time
+        existingVideo.image = parsedInput.image
+        existingVideo.video = parsedInput.video
+        existingVideo.dump = parsedInput.dump
+        existingVideo.quality = parsedInput.quality
+        existingVideo.models = modelIds
+        existingVideo.tags = tagIds
+        existingVideo.galeries = galerieIds
+        existingVideo.views = parsedInput.views
+        existingVideo.lastViews = parsedInput.lastViews
+        existingVideo.searchPrarms = searchPrarms
+
+        await existingVideo.save()
 
         const hydratedVideo = await Video.findById(videoObjectId)
             .populate('models')
@@ -89,7 +85,9 @@ export const UpdateVideo = async (input: UpdateVideoInput) => {
             .lean()
 
         revalidatePath('/pageClients/videos')
-        revalidatePath(`/pageClients/videos/edit/${parsedInput.videoId}`)
+        if (hydratedVideo?.slug) {
+            revalidatePath(`/pageClients/videos/edit/${hydratedVideo.slug}`)
+        }
 
         return {
             ok: true,

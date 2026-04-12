@@ -92,6 +92,17 @@ const NAVIGATION: Navigation = [
           color="currentColor"
           strokeWidth={0}
         />,
+      },
+      {
+        kind: 'page',
+        segment: 'activity',
+        title: 'Activity',
+        icon: <HugeiconsIcon
+          icon={AnalysisTextLinkIcon}
+          size={26}
+          color="currentColor"
+          strokeWidth={1.5}
+        />,
       }
     ]
   }

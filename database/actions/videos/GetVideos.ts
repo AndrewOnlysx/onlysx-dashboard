@@ -2,6 +2,7 @@
 
 import { Video } from '@/database/models/Video'
 import { connectDB } from '@/database/utils/mongodb'
+import { syncMissingSlugs } from '@/database/utils/slug'
 import { parseDurationToSeconds } from '@/lib/videos/admin'
 
 import '@/database/models/Models'
@@ -11,6 +12,7 @@ import '@/database/models/Galeries'
 export const GetVideos = async () => {
     try {
         await connectDB()
+        await syncMissingSlugs(Video, 'title')
 
         const videosResult = await Video.find()
             .sort({ createdAt: -1 })

@@ -18,7 +18,7 @@ const GridModels: NextPage<Props> = ({ models }) => {
             rowHeight={120}
             sx={{ height: '100%' }}
             onCellClick={(params) => {
-                router.push(`/pageClients/models/view/${params.row._id}`)
+                router.push(`/pageClients/models/view/${params.row.slug}`)
             }}
             pageSizeOptions={[100, 200, 500]}
             initialState={{

@@ -24,7 +24,7 @@ const CardVideo: NextPage<Props> = ({ video }) => {
 
     return (
         <Link
-            href={`/pageClients/videos/edit/${video._id}`}
+            href={`/pageClients/videos/edit/${video.slug}`}
             key={video._id}
             className="group block h-full"
         >

@@ -9,6 +9,7 @@ export interface GalleryImageType {
 
 export interface GalleryType {
     _id: string
+    slug: string
     name: string
     images: GalleryImageType[]
     isVisible?: boolean
@@ -18,6 +19,7 @@ export interface GalleryType {
 
 export interface VideoType {
     _id: string
+    slug: string
     title: string
     time: string
     image: string
@@ -36,6 +38,7 @@ export interface VideoType {
 
 export interface ModelType {
     _id: string
+    slug: string
     name: string
     folder?: string
     searchCounts?: number

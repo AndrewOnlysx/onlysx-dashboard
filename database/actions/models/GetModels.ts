@@ -4,14 +4,14 @@ import { Models } from "@/database/models/Models"
 import { Video } from "@/database/models/Video"
 import { Galeries } from "@/database/models/Galeries"
 import { connectDB } from "@/database/utils/mongodb"
+import { syncMissingSlugs } from '@/database/utils/slug'
 
 export async function GetModels() {
     try {
         await connectDB()
-        // 1️⃣ Obtener todos los modelos
-        const models = await Models.find().sort({ name: 1 }).lean() // 1 = ascendente
+        await syncMissingSlugs(Models, 'name')
+        const models = await Models.find().sort({ name: 1 }).lean()
 
-        // 2️⃣ Contar videos agrupados por modelo
         const videosCount = await Video.aggregate([
             { $unwind: "$models" },
             {
@@ -22,7 +22,6 @@ export async function GetModels() {
             }
         ])
 
-        // 3️⃣ Contar galerías agrupadas por modelo
         const galeriesCount = await Galeries.aggregate([
             { $unwind: "$idModel" },
             {
@@ -33,7 +32,6 @@ export async function GetModels() {
             }
         ])
 
-        // 4️⃣ Convertir a mapas para lookup rápido
         const videoMap = new Map(
             videosCount.map(item => [item._id.toString(), item.totalVideos])
         )
@@ -41,7 +39,6 @@ export async function GetModels() {
             galeriesCount.map(item => [item._id.toString(), item.totalGaleries])
         )
 
-        // 5️⃣ Combinar datos
         const modelsWithStats = models.map((model: any) => ({
             ...model,
             totalVideos: videoMap.get(model._id.toString()) || 0,
@@ -52,7 +49,7 @@ export async function GetModels() {
             ok: true,
             models: JSON.parse(JSON.stringify(modelsWithStats.map((model: any, index) => ({
                 ...model,
-                id: index + 1, // Agregar un ID incremental para el DataGrid
+                id: index + 1,
             }))))
         }
 

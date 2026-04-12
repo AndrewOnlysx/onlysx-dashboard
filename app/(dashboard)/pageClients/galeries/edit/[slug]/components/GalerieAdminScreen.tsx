@@ -9,6 +9,7 @@ dayjs.extend(relativeTime)
 
 interface Gallery {
     _id: string
+    slug: string
     name: string
     images: string[]
     updatedAt: string
@@ -170,7 +171,7 @@ const GaleriesAdminScreen = ({ galeries }: Props) => {
                             {/* Acciones */}
                             <div className="flex justify-between items-center px-4 pb-4 text-sm">
                                 <Link
-                                    href={`/pageClients/galeries/edit/${gallery._id}`}
+                                    href={`/pageClients/galeries/edit/${gallery.slug}`}
                                     className="text-[var(--primary)] hover:underline"
                                 >
                                     Editar

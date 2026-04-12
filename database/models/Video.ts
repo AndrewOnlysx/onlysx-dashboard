@@ -1,5 +1,7 @@
 import mongoose from "mongoose";
 
+import { attachSlugLifecycle } from '@/database/utils/slug'
+
 const VideoSchema = new mongoose.Schema({
     title: { type: String, required: true },
     time: { type: String, required: true },
@@ -16,5 +18,7 @@ const VideoSchema = new mongoose.Schema({
 }, {
     timestamps: true
 });
+
+attachSlugLifecycle(VideoSchema, 'title')
 
 export const Video = mongoose.models.Video || mongoose.model("Video", VideoSchema);

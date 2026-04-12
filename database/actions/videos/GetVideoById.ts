@@ -1,30 +1,19 @@
 'use server'
 
-import mongoose from 'mongoose'
-
 import { Video } from '@/database/models/Video'
 import { connectDB } from '@/database/utils/mongodb'
+import { buildSlugLookup, syncMissingSlugs } from '@/database/utils/slug'
 
 import '@/database/models/Models'
 import '@/database/models/Tags'
 import '@/database/models/Galeries'
 
-export const GetVideoById = async (id: string) => {
+export const GetVideoBySlug = async (slug: string) => {
     try {
-        if (!mongoose.Types.ObjectId.isValid(id)) {
-            return {
-                ok: false,
-                video: null,
-                recomendedContent: [],
-                relatedVideos: [],
-                relatedGarelies: [],
-                message: 'Invalid video id'
-            }
-        }
-
         await connectDB()
+        await syncMissingSlugs(Video, 'title')
 
-        const video = await Video.findById(id)
+        const video = await Video.findOne(buildSlugLookup(slug))
             .populate('models')
             .populate('tags')
             .populate('galeries')
@@ -49,7 +38,7 @@ export const GetVideoById = async (id: string) => {
         )
 
         const relatedVideos = await Video.find({
-            _id: { $ne: new mongoose.Types.ObjectId(id) },
+            _id: { $ne: video._id },
             $or: [
                 { models: { $in: modelIds } },
                 { tags: { $in: tagIds } }
@@ -83,3 +72,5 @@ export const GetVideoById = async (id: string) => {
         }
     }
 }
+
+export const GetVideoById = GetVideoBySlug

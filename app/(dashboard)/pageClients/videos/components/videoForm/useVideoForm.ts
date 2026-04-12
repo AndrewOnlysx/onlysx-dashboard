@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { useDropzone } from 'react-dropzone'
 
 import { VIDEO_QUALITY_OPTIONS, buildCreateVideoPayload, buildVideoSearchParams } from '@/lib/videos/admin'
@@ -67,6 +68,7 @@ export const useVideoForm = ({
     mode = 'create',
     initialVideo
 }: UseVideoFormOptions = {}) => {
+    const router = useRouter()
     const uploadTasksRef = useRef<Record<UploadKind, VideoAssetUploadTask | null>>({
         video: null,
         manualCover: null,
@@ -754,12 +756,26 @@ export const useVideoForm = ({
                     nextSubmitMessage: response.message,
                     nextSubmitStatus: 'success'
                 })
+            } else if (response.video) {
+                applyBaseState({
+                    nextBaseState: createVideoFormInitialState({
+                        mode: 'edit',
+                        initialVideo: response.video
+                    }),
+                    nextSubmitMessage: response.message,
+                    nextSubmitStatus: 'success'
+                })
             } else {
                 applyBaseState({
                     nextBaseState: createVideoFormInitialState({ mode: 'create' }),
                     nextSubmitMessage: response.message,
                     nextSubmitStatus: 'success'
                 })
+            }
+
+            if (response.video?.slug) {
+                router.refresh()
+                router.push(`/pageClients/videos/edit/${response.video.slug}`)
             }
         } catch (error) {
             console.error(`${FORM_LOG_PREFIX} submit-error`, { error })

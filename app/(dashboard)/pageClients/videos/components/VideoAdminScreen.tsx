@@ -206,7 +206,7 @@ const VideoAdminScreen = ({ videos, summary, qualities }: Props) => {
                     return (
                         <Link
                             key={video._id}
-                            href={`/pageClients/videos/edit/${video._id}`}
+                            href={`/pageClients/videos/edit/${video.slug}`}
                             className="group block overflow-hidden rounded-[18px] border border-white/8 bg-[rgba(18,21,27,0.94)] shadow-[0_12px_28px_rgba(0,0,0,0.16)] transition-[transform,border-color,box-shadow,background-color] duration-200 hover:-translate-y-[1px] hover:border-[rgba(255,80,164,0.18)] hover:bg-[rgba(20,23,29,0.98)] hover:shadow-[0_16px_32px_rgba(0,0,0,0.22)]"
                         >
                             <div className="relative aspect-video overflow-hidden border-b border-white/8 bg-[rgba(255,255,255,0.02)]">

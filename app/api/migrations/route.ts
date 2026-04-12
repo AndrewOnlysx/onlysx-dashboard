@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import mongoose from 'mongoose'
+import { BackfillSlugs } from '@/database/actions/slugs/BackfillSlugs'
 import { connectDB } from '@/database/utils/mongodb'
 import { Galeries } from '@/database/models/Galeries'
 
@@ -61,10 +62,13 @@ export async function GET() {
             }
         }
 
+        const slugBackfillResult = await BackfillSlugs()
+
         return NextResponse.json({
             success: true,
             message: 'Migration completed',
-            updatedDocuments: updatedCount
+            updatedDocuments: updatedCount,
+            updatedSlugs: slugBackfillResult.updatedSlugs
         })
 
     } catch (error) {

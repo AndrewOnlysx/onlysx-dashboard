@@ -36,9 +36,17 @@ export const CreateGallery = async (data: {
             images
         })
         await newGallery.save()
-        return JSON.parse(JSON.stringify(newGallery))
+        return {
+            ok: true,
+            gallery: JSON.parse(JSON.stringify(newGallery)),
+            message: 'Galeria creada correctamente.'
+        }
     } catch (error) {
         console.error("Error creating gallery:", error)
-        throw new Error("Failed to create gallery")
+        return {
+            ok: false,
+            gallery: null,
+            message: "Failed to create gallery"
+        }
     }
 }
