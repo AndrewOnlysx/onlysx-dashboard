@@ -60,7 +60,7 @@ export const createUniqueSlug = async ({
 }
 
 export const attachSlugLifecycle = <T>(schema: Schema<T>, sourceField: string) => {
-    ;(schema as any).add({
+    ; (schema as any).add({
         slug: {
             type: String,
             trim: true,
