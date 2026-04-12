@@ -67,6 +67,11 @@ const getDeltaDirection = (value: number | null) => {
     return value > 0 ? 'up' : 'down'
 }
 
+const getDeltaTone = (value: number | null): ActivityInsightTone | 'neutral' => {
+    const direction = getDeltaDirection(value)
+    return direction === 'flat' ? 'neutral' : deltaToneMap[direction]
+}
+
 const getToneLabel = (tone: ActivityInsightTone | 'neutral') => {
     if (tone === 'success') {
         return 'sube'
@@ -213,33 +218,25 @@ const ActivityAnalyticsScreen = ({ initialMetrics }: Props) => {
             label: 'Visitantes unicos',
             value: formatCompactNumber(metrics.summary.uniqueVisitors),
             helper: formatDelta(metrics.summary.deltas.visitors),
-            tone: getDeltaDirection(metrics.summary.deltas.visitors) === 'flat'
-                ? 'neutral'
-                : deltaToneMap[getDeltaDirection(metrics.summary.deltas.visitors)]
+            tone: getDeltaTone(metrics.summary.deltas.visitors)
         },
         {
             label: 'Pageviews',
             value: formatCompactNumber(metrics.summary.totalPageViews),
             helper: `${formatCompactNumber(metrics.summary.trackedPages)} rutas rastreadas`,
-            tone: getDeltaDirection(metrics.summary.deltas.pageViews) === 'flat'
-                ? 'neutral'
-                : deltaToneMap[getDeltaDirection(metrics.summary.deltas.pageViews)]
+            tone: getDeltaTone(metrics.summary.deltas.pageViews)
         },
         {
             label: 'Tiempo activo',
             value: formatHours(metrics.summary.totalActiveHours),
             helper: formatDelta(metrics.summary.deltas.activeHours),
-            tone: getDeltaDirection(metrics.summary.deltas.activeHours) === 'flat'
-                ? 'neutral'
-                : deltaToneMap[getDeltaDirection(metrics.summary.deltas.activeHours)]
+            tone: getDeltaTone(metrics.summary.deltas.activeHours)
         },
         {
             label: 'Retorno',
             value: formatPercentage(metrics.summary.returningRate),
             helper: `${formatCompactNumber(metrics.summary.returningVisitors)} visitantes volvieron al menos 2 dias`,
-            tone: getDeltaDirection(metrics.summary.deltas.returningRate) === 'flat'
-                ? 'neutral'
-                : deltaToneMap[getDeltaDirection(metrics.summary.deltas.returningRate)]
+            tone: getDeltaTone(metrics.summary.deltas.returningRate)
         }
     ]
 

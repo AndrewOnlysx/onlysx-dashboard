@@ -30,7 +30,7 @@ const sortImagesByFilename = <T extends { filename: string }>(images: T[]) => {
 
 interface GalleryFormGallery {
     _id: string
-    slug: string
+    slug?: string
     idTags: Array<string | TagType>
     idModel: Array<string | ModelType>
     idRelatedVideo?: string | { _id: string } | null

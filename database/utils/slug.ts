@@ -60,14 +60,14 @@ export const createUniqueSlug = async ({
 }
 
 export const attachSlugLifecycle = <T>(schema: Schema<T>, sourceField: string) => {
-    schema.add({
+    ;(schema as any).add({
         slug: {
             type: String,
             trim: true,
             lowercase: true,
             index: true
         }
-    } as Record<string, any>)
+    })
 
     schema.index({ slug: 1 }, { unique: true, sparse: true })
 
@@ -86,7 +86,7 @@ export const attachSlugLifecycle = <T>(schema: Schema<T>, sourceField: string) =
         const nextSlug = await createUniqueSlug({
             model: this.constructor as Model<any>,
             value: sourceValue,
-            excludeId: this._id
+            excludeId: this._id as mongoose.Types.ObjectId | string | undefined
         })
 
         this.set('slug', nextSlug)
@@ -107,7 +107,7 @@ export const syncMissingSlugs = async (model: Model<any>, sourceField: string) =
         document.set('slug', await createUniqueSlug({
             model,
             value: sourceValue,
-            excludeId: document._id
+            excludeId: document._id as mongoose.Types.ObjectId | string | undefined
         }))
 
         await document.save()
